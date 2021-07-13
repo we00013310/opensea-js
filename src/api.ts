@@ -17,7 +17,6 @@ import {
 import {
   assetBundleFromJSON,
   assetFromJSON,
-  createFakeAsset,
   delay,
   orderFromJSON,
   tokenFromJSON,
@@ -198,9 +197,9 @@ export class OpenSeaAPI {
   ): Promise<OpenSeaAsset> {
     let json;
     try {
-      // json = await this.get(`${API_PATH}/asset/${tokenAddress}/${tokenId || 0}/`)
-      // @ts-ignore
-      const json = createFakeAsset({ tokenId, tokenAddress });
+      json = await this.get(
+        `${API_PATH}/asset/${tokenAddress}/${tokenId || 0}/`
+      );
     } catch (error) {
       _throwOrContinue(error, retries);
       await delay(1000);

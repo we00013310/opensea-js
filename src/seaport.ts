@@ -68,6 +68,8 @@ import {
   onDeprecated,
   getNonCompliantApprovalAddress,
   isContractAddress,
+  assetFromJSON,
+  createFakeAsset,
 } from "./utils/utils";
 import {
   encodeAtomicizedTransfer,
@@ -2664,7 +2666,9 @@ export class OpenSeaPort {
     const wyAsset = getWyvernAsset(schema, asset, quantityBN);
     const isPrivate = buyerAddress != NULL_ADDRESS;
 
-    const openSeaAsset = await this.api.getAsset(asset);
+    // const openSeaAsset = await this.api.getAsset(asset);
+    // @ts-ignore
+    const openSeaAsset = assetFromJSON(createFakeAsset(asset));
 
     const {
       totalSellerFeeBasisPoints,
