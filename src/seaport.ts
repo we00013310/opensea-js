@@ -867,7 +867,7 @@ export class OpenSeaPort {
     console.log("1");
     await this._sellOrderValidationAndApprovals({ order, accountAddress });
     console.log("2");
-    console.log('order', order)
+    console.log("order", order);
     debugger;
 
     // if (buyerEmail) {
@@ -4006,6 +4006,7 @@ export class OpenSeaPort {
     let value;
     let shouldValidateBuy = true;
     let shouldValidateSell = true;
+    console.log("sell", buy, sell);
 
     if (sell.maker.toLowerCase() == accountAddress.toLowerCase()) {
       // USER IS THE SELLER, only validate the buy order
