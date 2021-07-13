@@ -3340,20 +3340,23 @@ export class OpenSeaPort {
         ? [order.metadata.schema]
         : [];
     const tokenAddress = order.paymentToken;
-
+    console.log("t1");
     await this._approveAll({ schemaNames, wyAssets, accountAddress });
-
+    console.log("t2");
     // For fulfilling bids,
     // need to approve access to fungible token because of the way fees are paid
     // This can be done at a higher level to show UI
     if (tokenAddress != NULL_ADDRESS) {
+      console.log("t3");
       const minimumAmount = makeBigNumber(order.basePrice);
       await this.approveFungibleToken({
         accountAddress,
         tokenAddress,
         minimumAmount,
       });
+      console.log("t3.5");
     }
+    console.log("t4");
 
     // Check sell parameters
     const sellValid =
@@ -3387,6 +3390,7 @@ export class OpenSeaPort {
         order.staticExtradata,
         { from: accountAddress }
       );
+    console.log("t5");
     if (!sellValid) {
       console.error(order);
       throw new Error(
