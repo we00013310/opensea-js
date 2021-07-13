@@ -4043,14 +4043,15 @@ export class OpenSeaPort {
     } else {
       // User is neither - matching service
     }
+    console.log("match");
 
-    await this._validateMatch({
-      buy,
-      sell,
-      accountAddress,
-      shouldValidateBuy,
-      shouldValidateSell,
-    });
+    // await this._validateMatch({
+    //   buy,
+    //   sell,
+    //   accountAddress,
+    //   shouldValidateBuy,
+    //   shouldValidateSell,
+    // });
 
     this._dispatch(EventType.MatchOrders, {
       buy,
