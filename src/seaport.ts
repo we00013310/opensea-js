@@ -867,6 +867,8 @@ export class OpenSeaPort {
     console.log("1");
     await this._sellOrderValidationAndApprovals({ order, accountAddress });
     console.log("2");
+    console.log('order', order)
+    debugger;
 
     // if (buyerEmail) {
     //   await this._createEmailWhitelistEntry({ order, buyerEmail })
@@ -3537,7 +3539,7 @@ export class OpenSeaPort {
           // let it through for assets we don't support yet
           isOwner = true;
         }
-        debugger;
+
         if (!isOwner) {
           const minAmount = "quantity" in wyAsset ? wyAsset.quantity : 1;
           console.error(
