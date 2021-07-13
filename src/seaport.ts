@@ -1174,16 +1174,20 @@ export class OpenSeaPort {
       accountAddress,
       recipientAddress: recipientAddress || accountAddress,
     });
+    console.log("1", order);
 
     const { buy, sell } = assignOrdersToSides(order, matchingOrder);
+    console.log("2");
 
     const metadata = this._getMetadata(order, referrerAddress);
+    console.log("3", metadata);
     const transactionHash = await this._atomicMatch({
       buy,
       sell,
       accountAddress,
       metadata,
     });
+    console.log("4");
 
     await this._confirmTransaction(
       transactionHash,
@@ -1194,6 +1198,7 @@ export class OpenSeaPort {
         return !isOpen;
       }
     );
+    console.log("5");
     return transactionHash;
   }
 
