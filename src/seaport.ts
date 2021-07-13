@@ -2619,11 +2619,8 @@ export class OpenSeaPort {
       replacementPattern,
       staticTarget,
       staticExtradata,
-      // @ts-ignore
       paymentToken,
-      // @ts-ignore
       basePrice,
-      // @ts-ignore
       extra,
       listingTime: times.listingTime,
       expirationTime: times.expirationTime,
@@ -2759,11 +2756,8 @@ export class OpenSeaPort {
       replacementPattern,
       staticTarget,
       staticExtradata,
-      // @ts-ignore
       paymentToken,
-      // @ts-ignore
       basePrice,
-      // @ts-ignore
       extra,
       listingTime: times.listingTime,
       expirationTime: times.expirationTime,
@@ -2976,11 +2970,8 @@ export class OpenSeaPort {
       replacementPattern,
       staticTarget: NULL_ADDRESS,
       staticExtradata: "0x",
-      // @ts-ignore
       paymentToken,
-      // @ts-ignore
       basePrice,
-      // @ts-ignore
       extra,
       listingTime: times.listingTime,
       expirationTime: times.expirationTime,
@@ -3126,11 +3117,8 @@ export class OpenSeaPort {
       replacementPattern,
       staticTarget: NULL_ADDRESS,
       staticExtradata: "0x",
-      // @ts-ignore
       paymentToken,
-      // @ts-ignore
       basePrice,
-      // @ts-ignore
       extra,
       listingTime: times.listingTime,
       expirationTime: times.expirationTime,
@@ -3923,23 +3911,23 @@ export class OpenSeaPort {
     const priceDiff = endAmount != null ? startAmount - endAmount : 0;
     const paymentToken = tokenAddress.toLowerCase();
     const isEther = tokenAddress == NULL_ADDRESS;
-    if (paymentToken === "0x0000000000000000000000000000000000000000") {
-      return {
-        address: "0x0000000000000000000000000000000000000000",
-        decimals: 18,
-        eth_price: "1.000000000000000",
-        id: 1,
-        image_url:
-          "https://storage.opensea.io/files/6f8e2979d428180222796ff4a33ab929.svg",
-        name: "BNB",
-        symbol: "BNB",
-        usd_price: "300",
-      };
-    }
     const { tokens } = await this.api.getPaymentTokens({
       address: paymentToken,
     });
-    const token = tokens[0];
+    const token =
+      paymentToken === "0x0000000000000000000000000000000000000000"
+        ? {
+            address: "0x0000000000000000000000000000000000000000",
+            decimals: 18,
+            eth_price: "1.000000000000000",
+            id: 1,
+            image_url:
+              "https://storage.opensea.io/files/6f8e2979d428180222796ff4a33ab929.svg",
+            name: "BNB",
+            symbol: "BNB",
+            usd_price: "300",
+          }
+        : tokens[0];
 
     // Validation
     if (isNaN(startAmount) || startAmount == null || startAmount < 0) {
@@ -4056,13 +4044,13 @@ export class OpenSeaPort {
       // User is neither - matching service
     }
 
-    // await this._validateMatch({
-    //   buy,
-    //   sell,
-    //   accountAddress,
-    //   shouldValidateBuy,
-    //   shouldValidateSell,
-    // });
+    await this._validateMatch({
+      buy,
+      sell,
+      accountAddress,
+      shouldValidateBuy,
+      shouldValidateSell,
+    });
 
     this._dispatch(EventType.MatchOrders, {
       buy,
