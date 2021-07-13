@@ -3507,11 +3507,15 @@ export class OpenSeaPort {
     accountAddress: string;
     proxyAddress?: string;
   }) {
+    console.log("p1");
     proxyAddress =
       proxyAddress || (await this._getProxy(accountAddress)) || undefined;
+    console.log("p2");
     if (!proxyAddress) {
+      console.log("p3");
       proxyAddress = await this._initializeProxy(accountAddress);
     }
+    console.log("p4");
     const contractsWithApproveAll: Set<string> = new Set();
 
     return Promise.all(
@@ -3520,6 +3524,7 @@ export class OpenSeaPort {
         // Verify that the taker owns the asset
         let isOwner;
         try {
+          console.log("p5", wyAsset);
           isOwner = await this._ownsAssetOnChain({
             accountAddress,
             proxyAddress,
@@ -3530,6 +3535,7 @@ export class OpenSeaPort {
           // let it through for assets we don't support yet
           isOwner = true;
         }
+        debugger;
         if (!isOwner) {
           const minAmount = "quantity" in wyAsset ? wyAsset.quantity : 1;
           console.error(
