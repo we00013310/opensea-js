@@ -1,5 +1,5 @@
-import 'isomorphic-unfetch';
-import { OpenSeaAPIConfig, OpenSeaAsset, OpenSeaAssetBundle, OpenSeaAssetBundleQuery, OpenSeaAssetQuery, OpenSeaFungibleToken, OpenSeaFungibleTokenQuery, Order, OrderJSON, OrderQuery } from './types';
+import "isomorphic-unfetch";
+import { OpenSeaAPIConfig, OpenSeaAsset, OpenSeaAssetBundle, OpenSeaAssetBundleQuery, OpenSeaAssetQuery, OpenSeaFungibleToken, OpenSeaFungibleTokenQuery, Order, OrderJSON, OrderQuery } from "./types";
 export declare class OpenSeaAPI {
     /**
      * Host url for OpenSea
@@ -66,7 +66,7 @@ export declare class OpenSeaAPI {
      * @param tokenId The asset's token ID, or null if ERC-20
      * @param retries Number of times to retry if the service is unavailable for any reason
      */
-    getAsset({ tokenAddress, tokenId }: {
+    getAsset({ tokenAddress, tokenId, }: {
         tokenAddress: string;
         tokenId: string | number | null;
     }, retries?: number): Promise<OpenSeaAsset>;
@@ -94,7 +94,7 @@ export declare class OpenSeaAPI {
      * Fetch an bundle from the API, return null if it isn't found
      * @param slug The bundle's identifier
      */
-    getBundle({ slug }: {
+    getBundle({ slug, }: {
         slug: string;
     }): Promise<OpenSeaAssetBundle | null>;
     /**
