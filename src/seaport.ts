@@ -125,6 +125,7 @@ import {
   WRAPPED_NFT_LIQUIDATION_PROXY_ADDRESS_RINKEBY,
   ENJIN_COIN_ADDRESS,
   MANA_ADDRESS,
+  USDT_ADDRESS,
 } from "./constants";
 
 export class OpenSeaPort {
@@ -3898,23 +3899,49 @@ export class OpenSeaPort {
     const priceDiff = endAmount != null ? startAmount - endAmount : 0;
     const paymentToken = tokenAddress.toLowerCase();
     const isEther = tokenAddress == NULL_ADDRESS;
-    const { tokens } = await this.api.getPaymentTokens({
-      address: paymentToken,
-    });
-    const token =
-      paymentToken === "0x0000000000000000000000000000000000000000"
-        ? {
-            address: "0x0000000000000000000000000000000000000000",
-            decimals: 18,
-            eth_price: "1.000000000000000",
-            id: 1,
-            image_url:
-              "https://storage.opensea.io/files/6f8e2979d428180222796ff4a33ab929.svg",
-            name: "BNB",
-            symbol: "BNB",
-            usd_price: "300",
-          }
-        : tokens[0];
+    // const { tokens } = await this.api.getPaymentTokens({
+    //   address: paymentToken,
+    // });
+    let token;
+    switch (paymentToken) {
+      case "0x0000000000000000000000000000000000000000":
+        token = {
+          address: "",
+          decimals: 18,
+          eth_price: "1.000000000000000",
+          id: 1,
+          image_url:
+            "https://storage.opensea.io/files/6f8e2979d428180222796ff4a33ab929.svg",
+          name: "BNB",
+          symbol: "BNB",
+          usd_price: "300",
+        };
+        break;
+      case USDT_ADDRESS:
+        token = {
+          address: USDT_ADDRESS,
+          decimals: 18,
+          eth_price: 0,
+          id: 2,
+          image_url: "https://app.bami.money/images/coins/USDT.png",
+          name: "USDT",
+          symbol: "USDT",
+          usd_price: "1",
+        };
+        break;
+
+      default:
+        token = {
+          address: USDT_ADDRESS,
+          decimals: 18,
+          eth_price: 0,
+          id: 2,
+          image_url: "https://app.bami.money/images/coins/USDT.png",
+          name: "USDT",
+          symbol: "USDT",
+          usd_price: "1",
+        };
+    }
 
     // Validation
     if (isNaN(startAmount) || startAmount == null || startAmount < 0) {
