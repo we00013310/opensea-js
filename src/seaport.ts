@@ -864,10 +864,7 @@ export class OpenSeaPort {
       extraBountyBasisPoints,
       buyerAddress: buyerAddress || NULL_ADDRESS,
     });
-    console.log("1");
     await this._sellOrderValidationAndApprovals({ order, accountAddress });
-    console.log("2");
-    console.log("order", order);
 
     // if (buyerEmail) {
     //   await this._createEmailWhitelistEntry({ order, buyerEmail })
@@ -877,22 +874,19 @@ export class OpenSeaPort {
       ...order,
       hash: getOrderHash(order),
     };
-    console.log("3");
+
     let signature;
     try {
       signature = await this._authorizeOrder(hashedOrder);
-      console.log("3.5");
     } catch (error) {
       console.error(error);
       throw new Error("You declined to authorize your auction");
     }
-    console.log("4");
 
     const orderWithSignature = {
       ...hashedOrder,
       ...signature,
     };
-    console.log("5");
 
     return orderWithSignature;
 
@@ -3199,7 +3193,7 @@ export class OpenSeaPort {
       exchange: order.exchange,
       maker: accountAddress,
       taker: order.maker,
-      quantity: order.quantity,
+      quantity: makeBigNumber(1),
       makerRelayerFee: order.makerRelayerFee,
       takerRelayerFee: order.takerRelayerFee,
       makerProtocolFee: order.makerProtocolFee,
@@ -3343,23 +3337,20 @@ export class OpenSeaPort {
         ? [order.metadata.schema]
         : [];
     const tokenAddress = order.paymentToken;
-    console.log("t1");
+
     await this._approveAll({ schemaNames, wyAssets, accountAddress });
-    console.log("t2");
+
     // For fulfilling bids,
     // need to approve access to fungible token because of the way fees are paid
     // This can be done at a higher level to show UI
     if (tokenAddress != NULL_ADDRESS) {
-      console.log("t3");
       const minimumAmount = makeBigNumber(order.basePrice);
       await this.approveFungibleToken({
         accountAddress,
         tokenAddress,
         minimumAmount,
       });
-      console.log("t3.5");
     }
-    console.log("t4");
 
     // Check sell parameters
     const sellValid =
@@ -3393,7 +3384,7 @@ export class OpenSeaPort {
         order.staticExtradata,
         { from: accountAddress }
       );
-    console.log("t5");
+
     if (!sellValid) {
       console.error(order);
       throw new Error(
@@ -3510,15 +3501,12 @@ export class OpenSeaPort {
     accountAddress: string;
     proxyAddress?: string;
   }) {
-    console.log("p1");
     proxyAddress =
       proxyAddress || (await this._getProxy(accountAddress)) || undefined;
-    console.log("p2");
+
     if (!proxyAddress) {
-      console.log("p3");
       proxyAddress = await this._initializeProxy(accountAddress);
     }
-    console.log("p4");
     const contractsWithApproveAll: Set<string> = new Set();
 
     return Promise.all(
@@ -3527,7 +3515,6 @@ export class OpenSeaPort {
         // Verify that the taker owns the asset
         let isOwner;
         try {
-          console.log("p5", wyAsset);
           isOwner = await this._ownsAssetOnChain({
             accountAddress,
             proxyAddress,
@@ -4018,7 +4005,6 @@ export class OpenSeaPort {
     let value;
     let shouldValidateBuy = true;
     let shouldValidateSell = true;
-    console.log("sell", buy, sell);
 
     if (sell.maker.toLowerCase() == accountAddress.toLowerCase()) {
       // USER IS THE SELLER, only validate the buy order
@@ -4043,15 +4029,14 @@ export class OpenSeaPort {
     } else {
       // User is neither - matching service
     }
-    console.log("match");
 
-    // await this._validateMatch({
-    //   buy,
-    //   sell,
-    //   accountAddress,
-    //   shouldValidateBuy,
-    //   shouldValidateSell,
-    // });
+    await this._validateMatch({
+      buy,
+      sell,
+      accountAddress,
+      shouldValidateBuy,
+      shouldValidateSell,
+    });
 
     this._dispatch(EventType.MatchOrders, {
       buy,
