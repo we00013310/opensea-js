@@ -4175,6 +4175,7 @@ export class OpenSeaPort {
 
     // Then do the transaction
     try {
+      console.log("this is atomic args", args);
       this.logger(`Fulfilling order with gas set to ${txnData.gas}`);
       txHash =
         await this._wyvernProtocol.wyvernExchange.atomicMatch_.sendTransactionAsync(
