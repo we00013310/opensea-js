@@ -894,6 +894,62 @@ export class OpenSeaPort {
     return this.validateAndPostOrder(orderWithSignature);
   }
 
+  public async createSellOrderWithoutSign({
+    asset,
+    accountAddress,
+    startAmount,
+    endAmount,
+    quantity = 1,
+    listingTime,
+    expirationTime = 0,
+    waitForHighestBid = false,
+    englishAuctionReservePrice,
+    paymentTokenAddress,
+    extraBountyBasisPoints = 0,
+    buyerAddress,
+  }: {
+    asset: Asset;
+    accountAddress: string;
+    startAmount: number;
+    endAmount?: number;
+    quantity?: number;
+    listingTime?: number;
+    expirationTime?: number;
+    waitForHighestBid?: boolean;
+    englishAuctionReservePrice?: number;
+    paymentTokenAddress?: string;
+    extraBountyBasisPoints?: number;
+    buyerAddress?: string;
+    buyerEmail?: string;
+  }): Promise<Order> {
+    const order = await this._makeSellOrder({
+      asset,
+      quantity,
+      accountAddress,
+      startAmount,
+      endAmount,
+      listingTime,
+      expirationTime,
+      waitForHighestBid,
+      englishAuctionReservePrice,
+      paymentTokenAddress: paymentTokenAddress || NULL_ADDRESS,
+      extraBountyBasisPoints,
+      buyerAddress: buyerAddress || NULL_ADDRESS,
+    });
+    await this._sellOrderValidationAndApprovals({ order, accountAddress });
+
+    // if (buyerEmail) {
+    //   await this._createEmailWhitelistEntry({ order, buyerEmail })
+    // }
+
+    const hashedOrder = {
+      ...order,
+      hash: getOrderHash(order),
+    };
+
+    return hashedOrder;
+  }
+
   /**
    * Create multiple sell orders in bulk to auction assets out of an asset factory.
    * Will throw a 'You do not own this asset' error if the maker doesn't own the factory.

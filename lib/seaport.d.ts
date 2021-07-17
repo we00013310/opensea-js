@@ -223,6 +223,21 @@ export declare class OpenSeaPort {
         buyerAddress?: string;
         buyerEmail?: string;
     }): Promise<Order>;
+    createSellOrderWithoutSign({ asset, accountAddress, startAmount, endAmount, quantity, listingTime, expirationTime, waitForHighestBid, englishAuctionReservePrice, paymentTokenAddress, extraBountyBasisPoints, buyerAddress, }: {
+        asset: Asset;
+        accountAddress: string;
+        startAmount: number;
+        endAmount?: number;
+        quantity?: number;
+        listingTime?: number;
+        expirationTime?: number;
+        waitForHighestBid?: boolean;
+        englishAuctionReservePrice?: number;
+        paymentTokenAddress?: string;
+        extraBountyBasisPoints?: number;
+        buyerAddress?: string;
+        buyerEmail?: string;
+    }): Promise<Order>;
     /**
      * Create multiple sell orders in bulk to auction assets out of an asset factory.
      * Will throw a 'You do not own this asset' error if the maker doesn't own the factory.
