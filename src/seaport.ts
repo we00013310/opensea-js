@@ -2418,8 +2418,6 @@ export class OpenSeaPort {
     accountAddress: string,
     retries = 0
   ): Promise<string | null> {
-    // @ts-ignore
-    window.ahihi = this._wyvernProtocolReadOnly;
     let proxyAddress: string | null =
       await this._wyvernProtocolReadOnly.wyvernProxyRegistry.proxies.callAsync(
         accountAddress
