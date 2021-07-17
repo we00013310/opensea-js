@@ -534,7 +534,12 @@ export async function personalSignAsync(
     throw new Error(error);
   }
 
-  return parseSignatureHex(signature.result);
+  //
+  return {
+    ...parseSignatureHex(signature.result),
+    // @ts-ignore
+    messageHash: signature.result,
+  };
 }
 
 /**
