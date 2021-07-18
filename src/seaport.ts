@@ -1272,8 +1272,10 @@ export class OpenSeaPort {
     accountAddress: string;
   }) {
     this._dispatch(EventType.CancelOrder, { order, accountAddress });
+    console.log("c1");
 
     const gasPrice = await this._computeGasPrice();
+    console.log("c2");
     const transactionHash =
       await this._wyvernProtocol.wyvernExchange.cancelOrder_.sendTransactionAsync(
         [
@@ -1308,6 +1310,7 @@ export class OpenSeaPort {
         order.s || NULL_BLOCK_HASH,
         { from: accountAddress, gasPrice }
       );
+    console.log("c3");
 
     await this._confirmTransaction(
       transactionHash.toString(),
@@ -1318,6 +1321,7 @@ export class OpenSeaPort {
         return !isOpen;
       }
     );
+    console.log("c4");
   }
 
   /**
