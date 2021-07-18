@@ -1230,20 +1230,14 @@ export class OpenSeaPort {
       accountAddress,
       recipientAddress: recipientAddress || accountAddress,
     });
-    console.log("1", order);
-
     const { buy, sell } = assignOrdersToSides(order, matchingOrder);
-    console.log("2");
-
     const metadata = this._getMetadata(order, referrerAddress);
-    console.log("3", metadata);
     const transactionHash = await this._atomicMatch({
       buy,
       sell,
       accountAddress,
       metadata,
     });
-    console.log("4");
 
     await this._confirmTransaction(
       transactionHash,
@@ -1254,7 +1248,7 @@ export class OpenSeaPort {
         return !isOpen;
       }
     );
-    console.log("5");
+
     return transactionHash;
   }
 
@@ -1272,10 +1266,8 @@ export class OpenSeaPort {
     accountAddress: string;
   }) {
     this._dispatch(EventType.CancelOrder, { order, accountAddress });
-    console.log("c1");
 
     const gasPrice = await this._computeGasPrice();
-    console.log("c2");
     const transactionHash =
       await this._wyvernProtocol.wyvernExchange.cancelOrder_.sendTransactionAsync(
         [
@@ -1310,7 +1302,6 @@ export class OpenSeaPort {
         order.s || NULL_BLOCK_HASH,
         { from: accountAddress, gasPrice }
       );
-    console.log("c3");
 
     await this._confirmTransaction(
       transactionHash.toString(),
@@ -1321,7 +1312,6 @@ export class OpenSeaPort {
         return !isOpen;
       }
     );
-    console.log("c4");
   }
 
   /**
@@ -4233,7 +4223,6 @@ export class OpenSeaPort {
 
     // Then do the transaction
     try {
-      console.log("this is atomic args", args);
       this.logger(`Fulfilling order with gas set to ${txnData.gas}`);
       txHash =
         await this._wyvernProtocol.wyvernExchange.atomicMatch_.sendTransactionAsync(

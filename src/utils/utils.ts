@@ -537,8 +537,6 @@ export async function personalSignAsync(
   //
   return {
     ...parseSignatureHex(signature.result),
-    // @ts-ignore
-    messageHash: signature.result,
   };
 }
 
