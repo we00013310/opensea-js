@@ -126,6 +126,8 @@ import {
   ENJIN_COIN_ADDRESS,
   MANA_ADDRESS,
   USDT_ADDRESS,
+  MGT_ADDRESS_TESTNET,
+  TESTNET_PROVIDER_URL,
 } from "./constants";
 
 export class OpenSeaPort {
@@ -173,6 +175,8 @@ export class OpenSeaPort {
     const readonlyProvider = new Web3.providers.HttpProvider(
       this._networkName == Network.Main
         ? MAINNET_PROVIDER_URL
+        : Network.Testnet
+        ? TESTNET_PROVIDER_URL
         : RINKEBY_PROVIDER_URL
     );
 
@@ -3980,6 +3984,18 @@ export class OpenSeaPort {
           name: "USDT",
           symbol: "USDT",
           usd_price: "1",
+        };
+        break;
+      case MGT_ADDRESS_TESTNET:
+        token = {
+          address: USDT_ADDRESS,
+          decimals: 18,
+          eth_price: 0,
+          id: 3,
+          image_url: "https://app.bami.money/images/coins/USDT.png",
+          name: "MangaToken",
+          symbol: "MGT",
+          usd_price: "10",
         };
         break;
 

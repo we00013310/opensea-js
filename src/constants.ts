@@ -4,20 +4,19 @@ import { BigNumber } from "bignumber.js"; // Typescript import issue
 export const DEFAULT_GAS_INCREASE_FACTOR = 1.01;
 export const NULL_ADDRESS = WyvernProtocol.NULL_ADDRESS;
 export const USDT_ADDRESS = "0x55d398326f99059ff775485246999027b3197955";
+export const MGT_ADDRESS_TESTNET = "0x02548b76400a08C3ff473595C1F4Ecff0b5c90E9";
 export const NULL_BLOCK_HASH =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
 export const OPENSEA_FEE_RECIPIENT =
   "0xa04D2205841704ec09a83045b4FCa84D239d8e19";
 export const DEP_INFURA_KEY = "e8695bce67944848aa95459fac052f8e";
 export const MAINNET_PROVIDER_URL = "https://bsc-dataseed.binance.org/";
+export const TESTNET_PROVIDER_URL =
+  "https://data-seed-prebsc-1-s1.binance.org:8545/";
 export const RINKEBY_PROVIDER_URL =
   "https://rinkeby-api.opensea.io/jsonrpc/v1/";
 export const INVERSE_BASIS_POINT = 10000;
 export const MAX_UINT_256 = WyvernProtocol.MAX_UINT_256;
-export const WYVERN_EXCHANGE_ADDRESS_MAINNET =
-  "0x29513B0E9fd9Cf9C30D7E43ff9c73818E117dCC5";
-export const WYVERN_EXCHANGE_ADDRESS_RINKEBY =
-  "0x5206e78b21ce315ce284fb24cf05e0585a93b1d9";
 export const ENJIN_COIN_ADDRESS = "0xf629cbd94d3791c9250152bd8dfbdf380e2a3b9c";
 export const MANA_ADDRESS = "0x0f5d2fb29fb7d3cfee444a200298f468908cc942";
 export const ENJIN_ADDRESS = "0xfaaFDc07907ff5120a76b34b731b278c38d6043C";
