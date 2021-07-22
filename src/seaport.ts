@@ -3677,18 +3677,18 @@ export class OpenSeaPort {
         );
       }
 
-      // Check WETH balance
-      if (balance.toNumber() < minimumAmount.toNumber()) {
-        if (
-          tokenAddress ==
-          // @ts-ignore
-          WyvernSchemas.tokens[this._networkName].canonicalWrappedEther.address
-        ) {
-          throw new Error("Insufficient balance. You may need to wrap Ether.");
-        } else {
-          throw new Error("Insufficient balance.");
-        }
-      }
+      // // Check WETH balance
+      // if (balance.toNumber() < minimumAmount.toNumber()) {
+      //   if (
+      //     tokenAddress ==
+      //     // @ts-ignore
+      //     WyvernSchemas.tokens[this._networkName].canonicalWrappedEther.address
+      //   ) {
+      //     throw new Error("Insufficient balance. You may need to wrap Ether.");
+      //   } else {
+      //     throw new Error("Insufficient balance.");
+      //   }
+      // }
 
       // Check token approval
       // This can be done at a higher level to show UI
