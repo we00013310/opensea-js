@@ -1480,6 +1480,13 @@ export class OpenSeaPort {
       });
 
       const gasPrice = await this._computeGasPrice();
+      console.log(
+        "ahihi",
+        proxyAddress,
+        tokenId,
+        accountAddress,
+        contract.address
+      );
       const txHash = await sendRawTransaction(
         this.web3,
         {
