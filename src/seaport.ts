@@ -3520,6 +3520,39 @@ export class OpenSeaPort {
   }
 
   public async _validateOrder(order: Order): Promise<boolean> {
+    console.log(
+      "shit",
+      [
+        order.exchange,
+        order.maker,
+        order.taker,
+        order.feeRecipient,
+        order.target,
+        order.staticTarget,
+        order.paymentToken,
+      ],
+      [
+        order.makerRelayerFee,
+        order.takerRelayerFee,
+        order.makerProtocolFee,
+        order.takerProtocolFee,
+        order.basePrice,
+        order.extra,
+        order.listingTime,
+        order.expirationTime,
+        order.salt,
+      ],
+      order.feeMethod,
+      order.side,
+      order.saleKind,
+      order.howToCall,
+      order.calldata,
+      order.replacementPattern,
+      order.staticExtradata,
+      order.v || 0,
+      order.r || NULL_BLOCK_HASH,
+      order.s || NULL_BLOCK_HASH
+    );
     const isValid =
       await this._wyvernProtocolReadOnly.wyvernExchange.validateOrder_.callAsync(
         [
