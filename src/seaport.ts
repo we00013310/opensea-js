@@ -19,6 +19,7 @@ import {
   CheezeWizardsBasicTournament,
   DecentralandEstates,
   getMethod,
+  ERC1155,
 } from "./contracts";
 import {
   ECSignature,
@@ -1341,7 +1342,7 @@ export class OpenSeaPort {
     tokenAddress,
     accountAddress,
     proxyAddress,
-    tokenAbi = ERC721,
+    tokenAbi = ERC1155,
     skipApproveAllIfTokenAddressIn = new Set(),
     schemaName = WyvernSchemaName.ERC721,
   }: {
@@ -3567,6 +3568,7 @@ export class OpenSeaPort {
     accountAddress: string;
     proxyAddress?: string;
   }) {
+    console.log("schemaNames", schemaNames);
     proxyAddress =
       proxyAddress || (await this._getProxy(accountAddress)) || undefined;
 
