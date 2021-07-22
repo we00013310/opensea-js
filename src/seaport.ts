@@ -2766,6 +2766,7 @@ export class OpenSeaPort {
         waitForHighestBid,
         englishAuctionReservePrice
       );
+    console.log("basePrice", basePrice);
     const times = this._getTimeParameters(
       expirationTime,
       listingTime,
