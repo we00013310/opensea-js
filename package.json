@@ -50,7 +50,7 @@
     "web3": "0.20.7",
     "webpack": "^3.10.0",
     "wyvern-js": "git+https://github.com/we00013310/wyvern-js.git",
-    "wyvern-schemas": "git+https://github.com/ProjectOpenSea/wyvern-schemas.git#v0.11.1"
+    "wyvern-schemas": "git+https://github.com/we00013310/wyvern-schemas.git"
   },
   "devDependencies": {
     "@types/chai": "4.2.9",
