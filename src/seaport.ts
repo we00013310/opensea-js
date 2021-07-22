@@ -1353,6 +1353,7 @@ export class OpenSeaPort {
     skipApproveAllIfTokenAddressIn?: Set<string>;
     schemaName?: WyvernSchemaName;
   }): Promise<string | null> {
+    console.log("tokenAbi", tokenAbi);
     const schema = this._getSchema(schemaName);
     const tokenContract = this.web3.eth.contract(tokenAbi as any[]);
     const contract = await tokenContract.at(tokenAddress);
