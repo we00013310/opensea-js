@@ -907,6 +907,7 @@ export function getOrderHash(order: UnhashedOrder) {
     howToCall: order.howToCall.toString(),
     feeMethod: order.feeMethod.toString(),
   };
+  console.log("orderWithStringTypes", orderWithStringTypes);
   return WyvernProtocol.getOrderHashHex(orderWithStringTypes as any);
 }
 
