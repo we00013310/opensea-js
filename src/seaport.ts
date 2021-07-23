@@ -1342,7 +1342,7 @@ export class OpenSeaPort {
     tokenAddress,
     accountAddress,
     proxyAddress,
-    tokenAbi = ERC1155,
+    tokenAbi = ERC721,
     skipApproveAllIfTokenAddressIn = new Set(),
     schemaName = WyvernSchemaName.ERC721,
   }: {
