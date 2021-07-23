@@ -4284,7 +4284,7 @@ export class OpenSeaPort {
       }
     } else {
       txnData.gasPrice = await this._computeGasPrice();
-      txnData.gas = 300000;
+      txnData.gas = 900000;
     }
 
     // Then do the transaction
