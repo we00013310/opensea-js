@@ -4250,35 +4250,38 @@ export class OpenSeaPort {
       ],
     ];
 
-    // Estimate gas first
-    try {
-      // Typescript splat doesn't typecheck
-      const gasEstimate =
-        await this._wyvernProtocolReadOnly.wyvernExchange.atomicMatch_.estimateGasAsync(
-          args[0],
-          args[1],
-          args[2],
-          args[3],
-          args[4],
-          args[5],
-          args[6],
-          args[7],
-          args[8],
-          args[9],
-          args[10],
-          txnData
-        );
+    if (this._networkName !== "testnet") {
+      console.log("estimating gas ...");
+      // Estimate gas first
+      try {
+        // Typescript splat doesn't typecheck
+        const gasEstimate =
+          await this._wyvernProtocolReadOnly.wyvernExchange.atomicMatch_.estimateGasAsync(
+            args[0],
+            args[1],
+            args[2],
+            args[3],
+            args[4],
+            args[5],
+            args[6],
+            args[7],
+            args[8],
+            args[9],
+            args[10],
+            txnData
+          );
 
-      txnData.gasPrice = await this._computeGasPrice();
-      txnData.gas = this._correctGasAmount(gasEstimate);
-    } catch (error) {
-      console.error(`Failed atomic match with args: `, args, error);
-      throw new Error(
-        `Oops, the Ethereum network rejected this transaction :( The OpenSea devs have been alerted, but this problem is typically due an item being locked or untransferrable. The exact error was "${error.message.substr(
-          0,
-          MAX_ERROR_LENGTH
-        )}..."`
-      );
+        txnData.gasPrice = await this._computeGasPrice();
+        txnData.gas = this._correctGasAmount(gasEstimate);
+      } catch (error) {
+        console.error(`Failed atomic match with args: `, args, error);
+        throw new Error(
+          `Oops, the Ethereum network rejected this transaction :( The OpenSea devs have been alerted, but this problem is typically due an item being locked or untransferrable. The exact error was "${error.message.substr(
+            0,
+            MAX_ERROR_LENGTH
+          )}..."`
+        );
+      }
     }
 
     // Then do the transaction
