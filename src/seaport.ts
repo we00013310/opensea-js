@@ -1354,7 +1354,6 @@ export class OpenSeaPort {
     skipApproveAllIfTokenAddressIn?: Set<string>;
     schemaName?: WyvernSchemaName;
   }): Promise<string | null> {
-    console.log("tokenAbi", tokenAbi);
     const schema = this._getSchema(schemaName);
     const tokenContract = this.web3.eth.contract(tokenAbi as any[]);
     const contract = await tokenContract.at(tokenAddress);
@@ -2766,7 +2765,6 @@ export class OpenSeaPort {
         waitForHighestBid,
         englishAuctionReservePrice
       );
-    console.log("basePrice", basePrice);
     const times = this._getTimeParameters(
       expirationTime,
       listingTime,
@@ -3521,39 +3519,6 @@ export class OpenSeaPort {
   }
 
   public async _validateOrder(order: Order): Promise<boolean> {
-    console.log(
-      "shit",
-      [
-        order.exchange,
-        order.maker,
-        order.taker,
-        order.feeRecipient,
-        order.target,
-        order.staticTarget,
-        order.paymentToken,
-      ],
-      [
-        order.makerRelayerFee,
-        order.takerRelayerFee,
-        order.makerProtocolFee,
-        order.takerProtocolFee,
-        order.basePrice,
-        order.extra,
-        order.listingTime,
-        order.expirationTime,
-        order.salt,
-      ],
-      order.feeMethod,
-      order.side,
-      order.saleKind,
-      order.howToCall,
-      order.calldata,
-      order.replacementPattern,
-      order.staticExtradata,
-      order.v || 0,
-      order.r || NULL_BLOCK_HASH,
-      order.s || NULL_BLOCK_HASH
-    );
     const isValid =
       await this._wyvernProtocolReadOnly.wyvernExchange.validateOrder_.callAsync(
         [
@@ -3602,7 +3567,6 @@ export class OpenSeaPort {
     accountAddress: string;
     proxyAddress?: string;
   }) {
-    console.log("schemaNames", schemaNames);
     proxyAddress =
       proxyAddress || (await this._getProxy(accountAddress)) || undefined;
 
@@ -3711,18 +3675,18 @@ export class OpenSeaPort {
         );
       }
 
-      // // Check WETH balance
-      // if (balance.toNumber() < minimumAmount.toNumber()) {
-      //   if (
-      //     tokenAddress ==
-      //     // @ts-ignore
-      //     WyvernSchemas.tokens[this._networkName].canonicalWrappedEther.address
-      //   ) {
-      //     throw new Error("Insufficient balance. You may need to wrap Ether.");
-      //   } else {
-      //     throw new Error("Insufficient balance.");
-      //   }
-      // }
+      // Check WETH balance
+      if (balance.toNumber() < minimumAmount.toNumber()) {
+        if (
+          tokenAddress ==
+          // @ts-ignore
+          WyvernSchemas.tokens[this._networkName].canonicalWrappedEther.address
+        ) {
+          throw new Error("Insufficient balance. You may need to wrap Ether.");
+        } else {
+          throw new Error("Insufficient balance.");
+        }
+      }
 
       // Check token approval
       // This can be done at a higher level to show UI
@@ -4250,41 +4214,36 @@ export class OpenSeaPort {
       ],
     ];
 
-    if (this._networkName !== "testnet") {
-      console.log("estimating gas ...");
-      // Estimate gas first
-      try {
-        // Typescript splat doesn't typecheck
-        const gasEstimate =
-          await this._wyvernProtocolReadOnly.wyvernExchange.atomicMatch_.estimateGasAsync(
-            args[0],
-            args[1],
-            args[2],
-            args[3],
-            args[4],
-            args[5],
-            args[6],
-            args[7],
-            args[8],
-            args[9],
-            args[10],
-            txnData
-          );
-
-        txnData.gasPrice = await this._computeGasPrice();
-        txnData.gas = this._correctGasAmount(gasEstimate);
-      } catch (error) {
-        console.error(`Failed atomic match with args: `, args, error);
-        throw new Error(
-          `Oops, the Ethereum network rejected this transaction :( The OpenSea devs have been alerted, but this problem is typically due an item being locked or untransferrable. The exact error was "${error.message.substr(
-            0,
-            MAX_ERROR_LENGTH
-          )}..."`
+    console.log("estimating gas ...");
+    // Estimate gas first
+    try {
+      // Typescript splat doesn't typecheck
+      const gasEstimate =
+        await this._wyvernProtocolReadOnly.wyvernExchange.atomicMatch_.estimateGasAsync(
+          args[0],
+          args[1],
+          args[2],
+          args[3],
+          args[4],
+          args[5],
+          args[6],
+          args[7],
+          args[8],
+          args[9],
+          args[10],
+          txnData
         );
-      }
-    } else {
+
       txnData.gasPrice = await this._computeGasPrice();
-      txnData.gas = 900000;
+      txnData.gas = this._correctGasAmount(gasEstimate);
+    } catch (error) {
+      console.error(`Failed atomic match with args: `, args, error);
+      throw new Error(
+        `Oops, the Ethereum network rejected this transaction :( The OpenSea devs have been alerted, but this problem is typically due an item being locked or untransferrable. The exact error was "${error.message.substr(
+          0,
+          MAX_ERROR_LENGTH
+        )}..."`
+      );
     }
 
     // Then do the transaction
