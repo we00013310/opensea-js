@@ -893,6 +893,8 @@ export class OpenSeaPort {
       ...hashedOrder,
       ...signature,
     };
+    const ahihi = await this.getOrderHashAhihi(orderWithSignature);
+    console.log("ahihi", ahihi);
 
     return orderWithSignature;
 
@@ -2290,6 +2292,53 @@ export class OpenSeaPort {
     // Validation is called server-side
     const confirmedOrder = await this.api.postOrder(orderToJSON(order));
     return confirmedOrder;
+  }
+
+  /**
+   * Validate and post an order to the OpenSea orderbook.
+   * @param order The order to post. Can either be signed by the maker or pre-approved on the Wyvern contract using approveOrder. See https://github.com/ProjectWyvern/wyvern-ethereum/blob/master/contracts/exchange/Exchange.sol#L178
+   * @returns The order as stored by the orderbook
+   */
+  public async getOrderHashAhihi(order: Order): Promise<string> {
+    const hash =
+      await this._wyvernProtocolReadOnly.wyvernExchange.hashOrder_.callAsync(
+        [
+          order.exchange,
+          order.maker,
+          order.taker,
+          order.feeRecipient,
+          order.target,
+          order.staticTarget,
+          order.paymentToken,
+        ],
+        [
+          order.makerRelayerFee,
+          order.takerRelayerFee,
+          order.makerProtocolFee,
+          order.takerProtocolFee,
+          order.basePrice,
+          order.extra,
+          order.listingTime,
+          order.expirationTime,
+          order.salt,
+        ],
+        order.feeMethod,
+        order.side,
+        order.saleKind,
+        order.howToCall,
+        order.calldata,
+        order.replacementPattern,
+        order.staticExtradata
+      );
+
+    if (hash !== order.hash) {
+      console.error(order);
+      throw new Error(
+        `Order couldn't be validated by the exchange due to a hash mismatch. Make sure your wallet is on the right network!`
+      );
+    }
+    this.logger("Order hashes match");
+    return hash;
   }
 
   /**
