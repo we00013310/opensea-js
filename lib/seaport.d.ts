@@ -546,7 +546,7 @@ export declare class OpenSeaPort {
      * @param order The order to post. Can either be signed by the maker or pre-approved on the Wyvern contract using approveOrder. See https://github.com/ProjectWyvern/wyvern-ethereum/blob/master/contracts/exchange/Exchange.sol#L178
      * @returns The order as stored by the orderbook
      */
-    getOrderHashAhihi(order: Order): Promise<string>;
+    getOrderMessageHash(order: Order): Promise<string>;
     /**
      * Compute the gas price for sending a txn, in wei
      * Will be slightly above the mean to make it faster

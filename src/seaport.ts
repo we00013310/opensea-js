@@ -893,10 +893,13 @@ export class OpenSeaPort {
       ...hashedOrder,
       ...signature,
     };
-    const ahihi = await this.getOrderHashAhihi(orderWithSignature);
-    console.log("ahihi", ahihi);
+    const messageHash = await this.getOrderMessageHash(orderWithSignature);
 
-    return orderWithSignature;
+    return {
+      ...orderWithSignature,
+      //@ts-ignore
+      messageHash,
+    };
 
     return this.validateAndPostOrder(orderWithSignature);
   }
@@ -1483,13 +1486,6 @@ export class OpenSeaPort {
       });
 
       const gasPrice = await this._computeGasPrice();
-      console.log(
-        "ahihi",
-        proxyAddress,
-        tokenId,
-        accountAddress,
-        contract.address
-      );
       const txHash = await sendRawTransaction(
         this.web3,
         {
@@ -2299,7 +2295,7 @@ export class OpenSeaPort {
    * @param order The order to post. Can either be signed by the maker or pre-approved on the Wyvern contract using approveOrder. See https://github.com/ProjectWyvern/wyvern-ethereum/blob/master/contracts/exchange/Exchange.sol#L178
    * @returns The order as stored by the orderbook
    */
-  public async getOrderHashAhihi(order: Order): Promise<string> {
+  public async getOrderMessageHash(order: Order): Promise<string> {
     const hash =
       await this._wyvernProtocolReadOnly.wyvernExchange.hashToSign_.callAsync(
         [
