@@ -2301,7 +2301,7 @@ export class OpenSeaPort {
    */
   public async getOrderHashAhihi(order: Order): Promise<string> {
     const hash =
-      await this._wyvernProtocolReadOnly.wyvernExchange.hashOrder_.callAsync(
+      await this._wyvernProtocolReadOnly.wyvernExchange.hashToSign_.callAsync(
         [
           order.exchange,
           order.maker,
