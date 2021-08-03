@@ -2331,12 +2331,6 @@ export class OpenSeaPort {
         order.staticExtradata
       );
 
-    if (hash !== order.hash) {
-      console.error(order);
-      throw new Error(
-        `Order couldn't be validated by the exchange due to a hash mismatch. Make sure your wallet is on the right network!`
-      );
-    }
     this.logger("Order hashes match");
     return hash;
   }
