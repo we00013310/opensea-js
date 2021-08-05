@@ -1249,17 +1249,25 @@ export class OpenSeaPort {
       metadata,
     });
 
-    await this._confirmTransaction(
-      transactionHash,
-      EventType.MatchOrders,
-      "Fulfilling order",
-      async () => {
-        const isOpen = await this._validateOrder(order);
-        return !isOpen;
+    try {
+      if (order.messageHash) {
+        await this.api.pendingOrder(order.messageHash);
       }
-    );
+    } catch (err) {
+      console.log("Error: cannot update order status!");
+    } finally {
+      await this._confirmTransaction(
+        transactionHash,
+        EventType.MatchOrders,
+        "Fulfilling order",
+        async () => {
+          const isOpen = await this._validateOrder(order);
+          return !isOpen;
+        }
+      );
 
-    return transactionHash;
+      return transactionHash;
+    }
   }
 
   /**

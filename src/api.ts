@@ -24,6 +24,7 @@ import {
 import {
   API_BASE_MAINNET,
   API_BASE_RINKEBY,
+  API_BASE_TESTNET,
   API_PATH,
   ORDERBOOK_PATH,
   ORDERBOOK_VERSION,
@@ -64,6 +65,8 @@ export class OpenSeaAPI {
         this.apiBaseUrl = config.apiBaseUrl || API_BASE_RINKEBY;
         this.hostUrl = SITE_HOST_RINKEBY;
         break;
+      case Network.Testnet:
+        this.apiBaseUrl = config.apiBaseUrl || API_BASE_TESTNET;
       case Network.Main:
       default:
         this.apiBaseUrl = config.apiBaseUrl || API_BASE_MAINNET;
@@ -95,6 +98,23 @@ export class OpenSeaAPI {
       return this.postOrder(order, retries - 1);
     }
     return orderFromJSON(json);
+  }
+
+  /**
+   * Send an order to the orderbook.
+   * Throws when the order is invalid.
+   * IN NEXT VERSION: change order input to Order type
+   * @param order Order JSON to post to the orderbook
+   * @param retries Number of times to retry if the service is unavailable for any reason
+   */
+  public async pendingOrder(orderHash: string): Promise<any> {
+    let json;
+    try {
+      json = (await this.post(`/p2p-placeOrder?id=${orderHash}'`)) as OrderJSON;
+    } catch (error) {
+      console.log(error);
+    }
+    return json;
   }
 
   /**

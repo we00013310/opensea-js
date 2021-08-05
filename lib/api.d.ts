@@ -33,6 +33,14 @@ export declare class OpenSeaAPI {
      */
     postOrder(order: OrderJSON, retries?: number): Promise<Order>;
     /**
+     * Send an order to the orderbook.
+     * Throws when the order is invalid.
+     * IN NEXT VERSION: change order input to Order type
+     * @param order Order JSON to post to the orderbook
+     * @param retries Number of times to retry if the service is unavailable for any reason
+     */
+    pendingOrder(orderHash: string): Promise<any>;
+    /**
      * Create a whitelist entry for an asset to prevent others from buying.
      * Buyers will have to have verified at least one of the emails
      * on an asset in order to buy.

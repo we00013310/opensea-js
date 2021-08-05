@@ -64,7 +64,10 @@ export const ORDER_MATCHING_LATENCY_SECONDS = 60 * 60 * 24 * 7;
 export const SELL_ORDER_BATCH_SIZE = 3;
 export const ORDERBOOK_VERSION: number = 1;
 export const API_VERSION: number = 1;
-export const API_BASE_MAINNET = "https://api.opensea.io";
+export const API_BASE_MAINNET =
+  "https://us-central1-trophee-beta.cloudfunctions.net";
+export const API_BASE_TESTNET =
+  "https://us-central1-trophee-beta-uat.cloudfunctions.net";
 export const API_BASE_RINKEBY = "https://rinkeby-api.opensea.io";
 export const SITE_HOST_MAINNET = "https://opensea.io";
 export const SITE_HOST_RINKEBY = "https://rinkeby.opensea.io";
