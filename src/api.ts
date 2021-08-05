@@ -67,6 +67,8 @@ export class OpenSeaAPI {
         break;
       case Network.Testnet:
         this.apiBaseUrl = config.apiBaseUrl || API_BASE_TESTNET;
+        this.hostUrl = SITE_HOST_MAINNET;
+        break;
       case Network.Main:
       default:
         this.apiBaseUrl = config.apiBaseUrl || API_BASE_MAINNET;
