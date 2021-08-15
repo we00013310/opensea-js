@@ -870,6 +870,7 @@ export class OpenSeaPort {
       extraBountyBasisPoints,
       buyerAddress: buyerAddress || NULL_ADDRESS,
     });
+    console.log("order", order);
     await this._sellOrderValidationAndApprovals({ order, accountAddress });
 
     // if (buyerEmail) {
