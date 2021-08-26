@@ -803,7 +803,14 @@ export class OpenSeaPort {
       ...hashedOrder,
       ...signature,
     };
-    return this.validateAndPostOrder(orderWithSignature);
+    const messageHash = await this.getOrderMessageHash(orderWithSignature);
+
+    return {
+      ...orderWithSignature,
+      //@ts-ignore
+      messageHash,
+    };
+    // return this.validateAndPostOrder(orderWithSignature);
   }
 
   /**
