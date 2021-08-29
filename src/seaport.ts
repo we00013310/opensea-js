@@ -2668,7 +2668,9 @@ export class OpenSeaPort {
     );
     const wyAsset = getWyvernAsset(schema, asset, quantityBN);
 
-    const openSeaAsset: OpenSeaAsset = await this.api.getAsset(asset);
+    // const openSeaAsset: OpenSeaAsset = await this.api.getAsset(asset);
+    // @ts-ignore
+    const openSeaAsset = assetFromJSON(createFakeAsset(asset));
 
     const taker = sellOrder ? sellOrder.maker : NULL_ADDRESS;
 
