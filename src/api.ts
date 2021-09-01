@@ -112,7 +112,7 @@ export class OpenSeaAPI {
   public async pendingOrder(orderHash: string): Promise<any> {
     let json;
     try {
-      json = (await this.post(`/p2p-placeOrder?id=${orderHash}'`)) as OrderJSON;
+      json = (await this.post(`/p2p-placeOrder?id=${orderHash}`)) as OrderJSON;
     } catch (error) {
       console.log(error);
     }
