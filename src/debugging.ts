@@ -28,7 +28,7 @@ const SaleKindInterface = {
 
   canSettleOrder(listingTime: number, expirationTime: number): boolean {
     const now = Math.round(Date.now() / 1000);
-    console.log("now", now, listingTime.toString(), expirationTime.toString());
+
     return listingTime < now && (expirationTime === 0 || now < expirationTime);
   },
 };

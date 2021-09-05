@@ -877,7 +877,6 @@ export class OpenSeaPort {
       extraBountyBasisPoints,
       buyerAddress: buyerAddress || NULL_ADDRESS,
     });
-    console.log("order", order);
     await this._sellOrderValidationAndApprovals({ order, accountAddress });
 
     // if (buyerEmail) {
@@ -1248,11 +1247,6 @@ export class OpenSeaPort {
       accountAddress,
       recipientAddress: recipientAddress || accountAddress,
     });
-    console.log(
-      "matchingOrder",
-      matchingOrder,
-      matchingOrder.listingTime.toString()
-    );
     const { buy, sell } = assignOrdersToSides(order, matchingOrder);
     const metadata = this._getMetadata(order, referrerAddress);
     const transactionHash = await this._atomicMatch({
@@ -3988,11 +3982,8 @@ export class OpenSeaPort {
     }
 
     if (waitingForBestCounterOrder) {
-      listingTimestamp = expirationTimestamp;
-      // Expire one week from now, to ensure server can match it
-      // Later, this will expire closer to the listingTime
-      expirationTimestamp =
-        expirationTimestamp + ORDER_MATCHING_LATENCY_SECONDS;
+      listingTimestamp =
+        listingTimestamp || Math.round(Date.now() / 1000 - 100);
     } else {
       // Small offset to account for latency
       listingTimestamp =
