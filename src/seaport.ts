@@ -1248,7 +1248,11 @@ export class OpenSeaPort {
       accountAddress,
       recipientAddress: recipientAddress || accountAddress,
     });
-    console.log("matchingOrder", matchingOrder);
+    console.log(
+      "matchingOrder",
+      matchingOrder,
+      matchingOrder.listingTime.toString()
+    );
     const { buy, sell } = assignOrdersToSides(order, matchingOrder);
     const metadata = this._getMetadata(order, referrerAddress);
     const transactionHash = await this._atomicMatch({
