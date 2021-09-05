@@ -4292,7 +4292,7 @@ export class OpenSeaPort {
     } catch (error) {
       console.error(`Failed atomic match with args: `, args, error);
       throw new Error(
-        `Oops, the Ethereum network rejected this transaction :( The OpenSea devs have been alerted, but this problem is typically due an item being locked or untransferrable. The exact error was "${error.message.substr(
+        `Oops, the Ethereum network rejected this transaction :( The devs have been alerted, but this problem is typically due an item being locked or untransferrable. The exact error was "${error.message.substr(
           0,
           MAX_ERROR_LENGTH
         )}..."`
