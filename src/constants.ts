@@ -12,7 +12,7 @@ export const OPENSEA_FEE_RECIPIENT =
 export const DEP_INFURA_KEY = "e8695bce67944848aa95459fac052f8e";
 export const MAINNET_PROVIDER_URL = "https://bsc-dataseed.binance.org/";
 export const TESTNET_PROVIDER_URL =
-  "https://data-seed-prebsc-1-s1.binance.org:8545/";
+  "https://data-seed-prebsc-2-s1.binance.org:8545/";
 export const RINKEBY_PROVIDER_URL =
   "https://rinkeby-api.opensea.io/jsonrpc/v1/";
 export const INVERSE_BASIS_POINT = 10000;

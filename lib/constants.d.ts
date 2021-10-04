@@ -7,7 +7,7 @@ export declare const NULL_BLOCK_HASH = "0x00000000000000000000000000000000000000
 export declare const OPENSEA_FEE_RECIPIENT = "0xa04D2205841704ec09a83045b4FCa84D239d8e19";
 export declare const DEP_INFURA_KEY = "e8695bce67944848aa95459fac052f8e";
 export declare const MAINNET_PROVIDER_URL = "https://bsc-dataseed.binance.org/";
-export declare const TESTNET_PROVIDER_URL = "https://data-seed-prebsc-1-s1.binance.org:8545/";
+export declare const TESTNET_PROVIDER_URL = "https://data-seed-prebsc-2-s1.binance.org:8545/";
 export declare const RINKEBY_PROVIDER_URL = "https://rinkeby-api.opensea.io/jsonrpc/v1/";
 export declare const INVERSE_BASIS_POINT = 10000;
 export declare const MAX_UINT_256: BigNumber;
