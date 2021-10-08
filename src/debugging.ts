@@ -1,8 +1,8 @@
-import { Order } from "./types";
-import { WyvernProtocol } from "wyvern-js";
-import { NULL_ADDRESS } from "./constants";
+import { Order } from "./types"
+import { WyvernProtocol } from "wyvern-js"
+import { NULL_ADDRESS } from "./constants"
 
-export const MAX_ERROR_LENGTH = 120;
+export const MAX_ERROR_LENGTH = 120
 
 /**
  * This file reproduces Solidity methods to make debugging easier
@@ -23,15 +23,15 @@ const SaleKindInterface = {
   SaleKind,
 
   validateParameters(saleKind: SaleKind, expirationTime: number): boolean {
-    return saleKind === SaleKind.FixedPrice || expirationTime > 0;
+    return saleKind === SaleKind.FixedPrice || expirationTime > 0
   },
 
   canSettleOrder(listingTime: number, expirationTime: number): boolean {
-    const now = Math.round(Date.now() / 1000);
+    const now = Math.round(Date.now() / 1000)
 
-    return listingTime < now && (expirationTime === 0 || now < expirationTime);
+    return listingTime < now && (expirationTime === 0 || now < expirationTime)
   },
-};
+}
 
 /**
  * Debug the `ordersCanMatch` part of Wyvern
@@ -100,10 +100,10 @@ export async function requireOrdersCanMatch(
     buy.staticExtradata,
     sell.staticExtradata,
     { from: accountAddress }
-  );
+  )
 
   if (result) {
-    return;
+    return
   }
 
   if (
@@ -112,23 +112,23 @@ export async function requireOrdersCanMatch(
       +sell.side == +SaleKindInterface.Side.Sell
     )
   ) {
-    throw new Error("Must be opposite-side");
+    throw new Error("Must be opposite-side")
   }
 
   if (!(buy.feeMethod == sell.feeMethod)) {
-    throw new Error("Must use same fee method");
+    throw new Error("Must use same fee method")
   }
 
   if (!(buy.paymentToken == sell.paymentToken)) {
-    throw new Error("Must use same payment token");
+    throw new Error("Must use same payment token")
   }
 
   if (!(sell.taker == NULL_ADDRESS || sell.taker == buy.maker)) {
-    throw new Error("Sell taker must be null or matching buy maker");
+    throw new Error("Sell taker must be null or matching buy maker")
   }
 
   if (!(buy.taker == NULL_ADDRESS || buy.taker == sell.maker)) {
-    throw new Error("Buy taker must be null or matching sell maker");
+    throw new Error("Buy taker must be null or matching sell maker")
   }
 
   if (
@@ -137,33 +137,33 @@ export async function requireOrdersCanMatch(
       (sell.feeRecipient != NULL_ADDRESS && buy.feeRecipient == NULL_ADDRESS)
     )
   ) {
-    throw new Error("One order must be maker and the other must be taker");
+    throw new Error("One order must be maker and the other must be taker")
   }
 
   if (!(buy.target == sell.target)) {
-    throw new Error("Must match target");
+    throw new Error("Must match target")
   }
 
   if (!(buy.howToCall == sell.howToCall)) {
-    throw new Error("Must match howToCall");
+    throw new Error("Must match howToCall")
   }
 
   if (
     !SaleKindInterface.canSettleOrder(+buy.listingTime, +buy.expirationTime)
   ) {
-    throw new Error(`Buy-side order is set in the future or expired`);
+    throw new Error(`Buy-side order is set in the future or expired`)
   }
 
   if (
     !SaleKindInterface.canSettleOrder(+sell.listingTime, +sell.expirationTime)
   ) {
-    throw new Error(`Sell-side order is set in the future or expired`);
+    throw new Error(`Sell-side order is set in the future or expired`)
   }
 
   // Handle default, which is likely now() being diff than local time
   throw new Error(
     "Error creating your order. Check that your system clock is set to the current date and time before you try again."
-  );
+  )
 }
 
 /**
@@ -180,9 +180,9 @@ export async function requireOrderCalldataCanMatch(
     buy.replacementPattern,
     sell.calldata,
     sell.replacementPattern
-  );
+  )
   if (result) {
-    return;
+    return
   }
-  throw new Error("Unable to match offer data with auction data.");
+  throw new Error("Unable to match offer data with auction data.")
 }

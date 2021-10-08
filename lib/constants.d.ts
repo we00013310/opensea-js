@@ -4,7 +4,7 @@ export declare const NULL_ADDRESS: string;
 export declare const USDT_ADDRESS = "0x55d398326f99059ff775485246999027b3197955";
 export declare const MGT_ADDRESS_TESTNET = "0x02548b76400a08C3ff473595C1F4Ecff0b5c90E9";
 export declare const NULL_BLOCK_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000";
-export declare const OPENSEA_FEE_RECIPIENT = "0xa04D2205841704ec09a83045b4FCa84D239d8e19";
+export declare const OPENSEA_FEE_RECIPIENT = "0xCcd6cc00981952cA24e3ED61fE84B784f9cec9da";
 export declare const DEP_INFURA_KEY = "e8695bce67944848aa95459fac052f8e";
 export declare const MAINNET_PROVIDER_URL = "https://bsc-dataseed.binance.org/";
 export declare const TESTNET_PROVIDER_URL = "https://data-seed-prebsc-2-s1.binance.org:8545/";
