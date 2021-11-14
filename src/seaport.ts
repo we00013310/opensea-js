@@ -173,27 +173,21 @@ export class OpenSeaPort {
     this.api = new OpenSeaAPI(apiConfig);
 
     this._networkName = apiConfig.networkName;
+    const generateUrl = () => {
+      switch (this._networkName) {
+        case Network.Main:
+          return MAINNET_PROVIDER_URL;
+        case Network.Testnet:
+          return TESTNET_PROVIDER_URL;
+        case Network.Ropsten:
+          return ROPSTEN_PROVIDER_URL;
+        default:
+          return RINKEBY_PROVIDER_URL;
+      }
+    };
 
-    const readonlyProvider = new Web3.providers.HttpProvider(
-      this._networkName == Network.Main
-        ? MAINNET_PROVIDER_URL
-        : Network.Testnet
-        ? TESTNET_PROVIDER_URL
-        : Network.Ropsten
-        ? ROPSTEN_PROVIDER_URL
-        : RINKEBY_PROVIDER_URL
-    );
-    console.log(
-      "test",
-      this._networkName,
-      this._networkName == Network.Main
-        ? MAINNET_PROVIDER_URL
-        : Network.Testnet
-        ? TESTNET_PROVIDER_URL
-        : Network.Ropsten
-        ? ROPSTEN_PROVIDER_URL
-        : RINKEBY_PROVIDER_URL
-    );
+    const readonlyProvider = new Web3.providers.HttpProvider(generateUrl());
+    console.log("test", this._networkName, generateUrl());
 
     // Web3 Config
     this.web3 = new Web3(provider);
