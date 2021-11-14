@@ -2537,11 +2537,11 @@ export class OpenSeaPort {
         accountAddress
       );
 
-    if (proxyAddress == "0x") {
-      throw new Error(
-        "Couldn't retrieve your account from the blockchain - make sure you're on the correct Ethereum network!"
-      );
-    }
+    // if (proxyAddress == "0x") {
+    //   throw new Error(
+    //     "Couldn't retrieve your account from the blockchain - make sure you're on the correct Ethereum network!"
+    //   );
+    // }
 
     if (!proxyAddress || proxyAddress == NULL_ADDRESS) {
       if (retries > 0) {
