@@ -1,9 +1,9 @@
-import * as Web3 from "web3"
-import { WyvernProtocol } from "wyvern-js"
-import * as WyvernSchemas from "wyvern-schemas"
-import { Schema } from "wyvern-schemas/dist/types"
-import * as _ from "lodash"
-import { OpenSeaAPI } from "./api"
+import * as Web3 from "web3";
+import { WyvernProtocol } from "wyvern-js";
+import * as WyvernSchemas from "wyvern-schemas";
+import { Schema } from "wyvern-schemas/dist/types";
+import * as _ from "lodash";
+import { OpenSeaAPI } from "./api";
 import {
   CanonicalWETH,
   ERC20,
@@ -20,7 +20,7 @@ import {
   DecentralandEstates,
   getMethod,
   ERC1155,
-} from "./contracts"
+} from "./contracts";
 import {
   ECSignature,
   FeeMethod,
@@ -45,7 +45,7 @@ import {
   WyvernNFTAsset,
   WyvernFTAsset,
   TokenStandardVersion,
-} from "./types"
+} from "./types";
 import {
   confirmTransaction,
   makeBigNumber,
@@ -71,7 +71,7 @@ import {
   isContractAddress,
   assetFromJSON,
   createFakeAsset,
-} from "./utils/utils"
+} from "./utils/utils";
 import {
   encodeAtomicizedTransfer,
   encodeProxyCall,
@@ -81,15 +81,15 @@ import {
   encodeSell,
   encodeAtomicizedBuy,
   encodeAtomicizedSell,
-} from "./utils/schema"
+} from "./utils/schema";
 import {
   requireOrdersCanMatch,
   MAX_ERROR_LENGTH,
   requireOrderCalldataCanMatch,
-} from "./debugging"
-import { BigNumber } from "bignumber.js"
-import { EventEmitter, EventSubscription } from "fbemitter"
-import { isValidAddress } from "ethereumjs-util"
+} from "./debugging";
+import { BigNumber } from "bignumber.js";
+import { EventEmitter, EventSubscription } from "fbemitter";
+import { isValidAddress } from "ethereumjs-util";
 import {
   CHEEZE_WIZARDS_BASIC_TOURNAMENT_ADDRESS,
   CHEEZE_WIZARDS_BASIC_TOURNAMENT_RINKEBY_ADDRESS,
@@ -129,28 +129,29 @@ import {
   USDT_ADDRESS,
   MGT_ADDRESS_TESTNET,
   TESTNET_PROVIDER_URL,
-} from "./constants"
+  ROPSTEN_PROVIDER_URL,
+} from "./constants";
 
 export class OpenSeaPort {
   // Web3 instance to use
-  public web3: Web3
-  public web3ReadOnly: Web3
+  public web3: Web3;
+  public web3ReadOnly: Web3;
   // Logger function to use when debugging
-  public logger: (arg: string) => void
+  public logger: (arg: string) => void;
   // API instance on this seaport
-  public readonly api: OpenSeaAPI
+  public readonly api: OpenSeaAPI;
   // Extra gwei to add to the mean gas price when making transactions
-  public gasPriceAddition = new BigNumber(3)
+  public gasPriceAddition = new BigNumber(3);
   // Multiply gas estimate by this factor when making transactions
-  public gasIncreaseFactor = DEFAULT_GAS_INCREASE_FACTOR
+  public gasIncreaseFactor = DEFAULT_GAS_INCREASE_FACTOR;
 
-  private _networkName: Network
-  private _wyvernProtocol: WyvernProtocol
-  private _wyvernProtocolReadOnly: WyvernProtocol
-  private _emitter: EventEmitter
-  private _wrappedNFTFactoryAddress: string
-  private _wrappedNFTLiquidationProxyAddress: string
-  private _uniswapFactoryAddress: string
+  private _networkName: Network;
+  private _wyvernProtocol: WyvernProtocol;
+  private _wyvernProtocolReadOnly: WyvernProtocol;
+  private _emitter: EventEmitter;
+  private _wrappedNFTFactoryAddress: string;
+  private _wrappedNFTLiquidationProxyAddress: string;
+  private _uniswapFactoryAddress: string;
 
   /**
    * Your very own seaport.
@@ -167,55 +168,57 @@ export class OpenSeaPort {
     logger?: (arg: string) => void
   ) {
     // API config
-    apiConfig.networkName = apiConfig.networkName || Network.Main
-    apiConfig.gasPrice = apiConfig.gasPrice || makeBigNumber(300000)
-    this.api = new OpenSeaAPI(apiConfig)
+    apiConfig.networkName = apiConfig.networkName || Network.Main;
+    apiConfig.gasPrice = apiConfig.gasPrice || makeBigNumber(300000);
+    this.api = new OpenSeaAPI(apiConfig);
 
-    this._networkName = apiConfig.networkName
+    this._networkName = apiConfig.networkName;
 
     const readonlyProvider = new Web3.providers.HttpProvider(
       this._networkName == Network.Main
         ? MAINNET_PROVIDER_URL
         : Network.Testnet
         ? TESTNET_PROVIDER_URL
+        : Network.Ropsten
+        ? ROPSTEN_PROVIDER_URL
         : RINKEBY_PROVIDER_URL
-    )
+    );
 
     // Web3 Config
-    this.web3 = new Web3(provider)
-    this.web3ReadOnly = new Web3(readonlyProvider)
+    this.web3 = new Web3(provider);
+    this.web3ReadOnly = new Web3(readonlyProvider);
 
     // WyvernJS config
     this._wyvernProtocol = new WyvernProtocol(provider, {
       network: this._networkName,
       gasPrice: apiConfig.gasPrice,
-    })
+    });
 
     // WyvernJS config for readonly (optimization for infura calls)
     this._wyvernProtocolReadOnly = new WyvernProtocol(readonlyProvider, {
       network: this._networkName,
       gasPrice: apiConfig.gasPrice,
-    })
+    });
 
     // WrappedNFTLiquidationProxy Config
     this._wrappedNFTFactoryAddress =
       this._networkName == Network.Main
         ? WRAPPED_NFT_FACTORY_ADDRESS_MAINNET
-        : WRAPPED_NFT_FACTORY_ADDRESS_RINKEBY
+        : WRAPPED_NFT_FACTORY_ADDRESS_RINKEBY;
     this._wrappedNFTLiquidationProxyAddress =
       this._networkName == Network.Main
         ? WRAPPED_NFT_LIQUIDATION_PROXY_ADDRESS_MAINNET
-        : WRAPPED_NFT_LIQUIDATION_PROXY_ADDRESS_RINKEBY
+        : WRAPPED_NFT_LIQUIDATION_PROXY_ADDRESS_RINKEBY;
     this._uniswapFactoryAddress =
       this._networkName == Network.Main
         ? UNISWAP_FACTORY_ADDRESS_MAINNET
-        : UNISWAP_FACTORY_ADDRESS_RINKEBY
+        : UNISWAP_FACTORY_ADDRESS_RINKEBY;
 
     // Emit events
-    this._emitter = new EventEmitter()
+    this._emitter = new EventEmitter();
 
     // Debugging: default to nothing
-    this.logger = logger || ((arg: string) => arg)
+    this.logger = logger || ((arg: string) => arg);
   }
 
   /**
@@ -231,8 +234,8 @@ export class OpenSeaPort {
   ): EventSubscription {
     const subscription = once
       ? this._emitter.once(event, listener)
-      : this._emitter.addListener(event, listener)
-    return subscription
+      : this._emitter.addListener(event, listener);
+    return subscription;
   }
 
   /**
@@ -241,7 +244,7 @@ export class OpenSeaPort {
    * @param subscription The event subscription returned from `addListener`
    */
   public removeListener(subscription: EventSubscription) {
-    subscription.remove()
+    subscription.remove();
   }
 
   /**
@@ -250,7 +253,7 @@ export class OpenSeaPort {
    * @param event Optional EventType to remove listeners for
    */
   public removeAllListeners(event?: EventType) {
-    this._emitter.removeAllListeners(event)
+    this._emitter.removeAllListeners(event);
   }
 
   /**
@@ -267,22 +270,22 @@ export class OpenSeaPort {
     assets: Asset[];
     accountAddress: string;
   }) {
-    const schema = this._getSchema(WyvernSchemaName.ERC721)
-    const wyAssets = assets.map(a => getWyvernAsset(schema, a))
+    const schema = this._getSchema(WyvernSchemaName.ERC721);
+    const wyAssets = assets.map((a) => getWyvernAsset(schema, a));
 
     // Separate assets out into two arrays of tokenIds and tokenAddresses
-    const tokenIds = wyAssets.map(a => a.id)
-    const tokenAddresses = wyAssets.map(a => a.address)
+    const tokenIds = wyAssets.map((a) => a.id);
+    const tokenAddresses = wyAssets.map((a) => a.address);
 
     // Check if all tokenAddresses match. If not, then we have a mixedBatch of
     // NFTs from different NFT core contracts
     const isMixedBatchOfAssets: boolean = !tokenAddresses.every(
       (val, i, arr) => val === arr[0]
-    )
+    );
 
-    this._dispatch(EventType.WrapAssets, { assets: wyAssets, accountAddress })
+    this._dispatch(EventType.WrapAssets, { assets: wyAssets, accountAddress });
 
-    const gasPrice = await this._computeGasPrice()
+    const gasPrice = await this._computeGasPrice();
     const txHash = await sendRawTransaction(
       this.web3,
       {
@@ -295,16 +298,17 @@ export class OpenSeaPort {
           isMixedBatchOfAssets,
         ]),
         gasPrice,
-      },error => {
-        this._dispatch(EventType.TransactionDenied, { error, accountAddress })
+      },
+      (error) => {
+        this._dispatch(EventType.TransactionDenied, { error, accountAddress });
       }
-    )
+    );
 
     await this._confirmTransaction(
       txHash,
       EventType.WrapAssets,
       "Wrapping Assets"
-    )
+    );
   }
 
   /**
@@ -331,28 +335,28 @@ export class OpenSeaPort {
     ) {
       throw new Error(
         "The 'assets' and 'destinationAddresses' arrays must exist and have the same length."
-      )
+      );
     }
 
-    const schema = this._getSchema(WyvernSchemaName.ERC721)
-    const wyAssets = assets.map(a => getWyvernAsset(schema, a))
+    const schema = this._getSchema(WyvernSchemaName.ERC721);
+    const wyAssets = assets.map((a) => getWyvernAsset(schema, a));
 
     // Separate assets out into two arrays of tokenIds and tokenAddresses
-    const tokenIds = wyAssets.map(a => a.id)
-    const tokenAddresses = wyAssets.map(a => a.address)
+    const tokenIds = wyAssets.map((a) => a.id);
+    const tokenAddresses = wyAssets.map((a) => a.address);
 
     // Check if all tokenAddresses match. If not, then we have a mixedBatch of
     // NFTs from different NFT core contracts
     const isMixedBatchOfAssets: boolean = !tokenAddresses.every(
       (val, i, arr) => val === arr[0]
-    )
+    );
 
     this._dispatch(EventType.UnwrapAssets, {
       assets: wyAssets,
       accountAddress,
-    })
+    });
 
-    const gasPrice = await this._computeGasPrice()
+    const gasPrice = await this._computeGasPrice();
     const txHash = await sendRawTransaction(
       this.web3,
       {
@@ -366,16 +370,17 @@ export class OpenSeaPort {
           isMixedBatchOfAssets,
         ]),
         gasPrice,
-      },error => {
-        this._dispatch(EventType.TransactionDenied, { error, accountAddress })
+      },
+      (error) => {
+        this._dispatch(EventType.TransactionDenied, { error, accountAddress });
       }
-    )
+    );
 
     await this._confirmTransaction(
       txHash,
       EventType.UnwrapAssets,
       "Unwrapping Assets"
-    )
+    );
   }
 
   /**
@@ -401,27 +406,27 @@ export class OpenSeaPort {
     const uniswapSlippage =
       uniswapSlippageAllowedInBasisPoints === 0
         ? DEFAULT_WRAPPED_NFT_LIQUIDATION_UNISWAP_SLIPPAGE_IN_BASIS_POINTS
-        : uniswapSlippageAllowedInBasisPoints
+        : uniswapSlippageAllowedInBasisPoints;
 
-    const schema = this._getSchema(WyvernSchemaName.ERC721)
-    const wyAssets = assets.map(a => getWyvernAsset(schema, a))
+    const schema = this._getSchema(WyvernSchemaName.ERC721);
+    const wyAssets = assets.map((a) => getWyvernAsset(schema, a));
 
     // Separate assets out into two arrays of tokenIds and tokenAddresses
-    const tokenIds = wyAssets.map(a => a.id)
-    const tokenAddresses = wyAssets.map(a => a.address)
+    const tokenIds = wyAssets.map((a) => a.id);
+    const tokenAddresses = wyAssets.map((a) => a.address);
 
     // Check if all tokenAddresses match. If not, then we have a mixedBatch of
     // NFTs from different NFT core contracts
     const isMixedBatchOfAssets: boolean = !tokenAddresses.every(
       (val, i, arr) => val === arr[0]
-    )
+    );
 
     this._dispatch(EventType.LiquidateAssets, {
       assets: wyAssets,
       accountAddress,
-    })
+    });
 
-    const gasPrice = await this._computeGasPrice()
+    const gasPrice = await this._computeGasPrice();
     const txHash = await sendRawTransaction(
       this.web3,
       {
@@ -433,16 +438,17 @@ export class OpenSeaPort {
           [tokenIds, tokenAddresses, isMixedBatchOfAssets, uniswapSlippage]
         ),
         gasPrice,
-      },error => {
-        this._dispatch(EventType.TransactionDenied, { error, accountAddress })
+      },
+      (error) => {
+        this._dispatch(EventType.TransactionDenied, { error, accountAddress });
       }
-    )
+    );
 
     await this._confirmTransaction(
       txHash,
       EventType.LiquidateAssets,
       "Liquidating Assets"
-    )
+    );
   }
 
   /**
@@ -466,15 +472,15 @@ export class OpenSeaPort {
     accountAddress: string;
   }) {
     // @ts-ignore
-    const token = WyvernSchemas.tokens[this._networkName].canonicalWrappedEther
+    const token = WyvernSchemas.tokens[this._networkName].canonicalWrappedEther;
 
     this._dispatch(EventType.PurchaseAssets, {
       amount,
       contractAddress,
       accountAddress,
-    })
+    });
 
-    const gasPrice = await this._computeGasPrice()
+    const gasPrice = await this._computeGasPrice();
     const txHash = await sendRawTransaction(
       this.web3,
       {
@@ -486,16 +492,17 @@ export class OpenSeaPort {
           [numTokensToBuy, contractAddress]
         ),
         gasPrice,
-      },error => {
-        this._dispatch(EventType.TransactionDenied, { error, accountAddress })
+      },
+      (error) => {
+        this._dispatch(EventType.TransactionDenied, { error, accountAddress });
       }
-    )
+    );
 
     await this._confirmTransaction(
       txHash,
       EventType.PurchaseAssets,
       "Purchasing Assets"
-    )
+    );
   }
 
   /**
@@ -517,41 +524,41 @@ export class OpenSeaPort {
     // Get UniswapExchange for WrappedNFTContract for contractAddress
     const wrappedNFTFactoryContract = this.web3.eth.contract(
       WrappedNFTFactory as any[]
-    )
+    );
     const wrappedNFTFactory = await wrappedNFTFactoryContract.at(
       this._wrappedNFTFactoryAddress
-    )
+    );
     const wrappedNFTAddress =
-      await wrappedNFTFactory.nftContractToWrapperContract(contractAddress)
-    const wrappedNFTContract = this.web3.eth.contract(WrappedNFT as any[])
-    const wrappedNFT = await wrappedNFTContract.at(wrappedNFTAddress)
+      await wrappedNFTFactory.nftContractToWrapperContract(contractAddress);
+    const wrappedNFTContract = this.web3.eth.contract(WrappedNFT as any[]);
+    const wrappedNFT = await wrappedNFTContract.at(wrappedNFTAddress);
     const uniswapFactoryContract = this.web3.eth.contract(
       UniswapFactory as any[]
-    )
+    );
     const uniswapFactory = await uniswapFactoryContract.at(
       this._uniswapFactoryAddress
-    )
+    );
     const uniswapExchangeAddress = await uniswapFactory.getExchange(
       wrappedNFTAddress
-    )
+    );
     const uniswapExchangeContract = this.web3.eth.contract(
       UniswapExchange as any[]
-    )
+    );
     const uniswapExchange = await uniswapExchangeContract.at(
       uniswapExchangeAddress
-    )
+    );
 
     // Convert desired WNFT to wei
     const amount = WyvernProtocol.toBaseUnitAmount(
       makeBigNumber(numTokens),
       wrappedNFT.decimals()
-    )
+    );
 
     // Return quote from Uniswap
     if (isBuying) {
-      return parseInt(await uniswapExchange.getEthToTokenOutputPrice(amount))
+      return parseInt(await uniswapExchange.getEthToTokenOutputPrice(amount));
     } else {
-      return parseInt(await uniswapExchange.getTokenToEthInputPrice(amount))
+      return parseInt(await uniswapExchange.getTokenToEthInputPrice(amount));
     }
   }
 
@@ -571,16 +578,16 @@ export class OpenSeaPort {
     accountAddress: string;
   }) {
     // @ts-ignore
-    const token = WyvernSchemas.tokens[this._networkName].canonicalWrappedEther
+    const token = WyvernSchemas.tokens[this._networkName].canonicalWrappedEther;
 
     const amount = WyvernProtocol.toBaseUnitAmount(
       makeBigNumber(amountInEth),
       token.decimals
-    )
+    );
 
-    this._dispatch(EventType.WrapEth, { accountAddress, amount })
+    this._dispatch(EventType.WrapEth, { accountAddress, amount });
 
-    const gasPrice = await this._computeGasPrice()
+    const gasPrice = await this._computeGasPrice();
     const txHash = await sendRawTransaction(
       this.web3,
       {
@@ -589,12 +596,13 @@ export class OpenSeaPort {
         value: amount,
         data: encodeCall(getMethod(CanonicalWETH, "deposit"), []),
         gasPrice,
-      },error => {
-        this._dispatch(EventType.TransactionDenied, { error, accountAddress })
+      },
+      (error) => {
+        this._dispatch(EventType.TransactionDenied, { error, accountAddress });
       }
-    )
+    );
 
-    await this._confirmTransaction(txHash, EventType.WrapEth, "Wrapping ETH")
+    await this._confirmTransaction(txHash, EventType.WrapEth, "Wrapping ETH");
   }
 
   /**
@@ -612,16 +620,16 @@ export class OpenSeaPort {
     accountAddress: string;
   }) {
     // @ts-ignore
-    const token = WyvernSchemas.tokens[this._networkName].canonicalWrappedEther
+    const token = WyvernSchemas.tokens[this._networkName].canonicalWrappedEther;
 
     const amount = WyvernProtocol.toBaseUnitAmount(
       makeBigNumber(amountInEth),
       token.decimals
-    )
+    );
 
-    this._dispatch(EventType.UnwrapWeth, { accountAddress, amount })
+    this._dispatch(EventType.UnwrapWeth, { accountAddress, amount });
 
-    const gasPrice = await this._computeGasPrice()
+    const gasPrice = await this._computeGasPrice();
     const txHash = await sendRawTransaction(
       this.web3,
       {
@@ -632,16 +640,17 @@ export class OpenSeaPort {
           amount.toString(),
         ]),
         gasPrice,
-      },error => {
-        this._dispatch(EventType.TransactionDenied, { error, accountAddress })
+      },
+      (error) => {
+        this._dispatch(EventType.TransactionDenied, { error, accountAddress });
       }
-    )
+    );
 
     await this._confirmTransaction(
       txHash,
       EventType.UnwrapWeth,
       "Unwrapping W-ETH"
-    )
+    );
   }
 
   /**
@@ -681,11 +690,11 @@ export class OpenSeaPort {
     referrerAddress?: string;
   }): Promise<Order> {
     // Default to 1 of each asset
-    quantities = quantities || assets.map(a => 1)
+    quantities = quantities || assets.map((a) => 1);
     paymentTokenAddress =
       paymentTokenAddress ||
       // @ts-ignore
-      WyvernSchemas.tokens[this._networkName].canonicalWrappedEther.address
+      WyvernSchemas.tokens[this._networkName].canonicalWrappedEther.address;
 
     const order = await this._makeBundleBuyOrder({
       assets,
@@ -699,30 +708,30 @@ export class OpenSeaPort {
       extraBountyBasisPoints: 0,
       sellOrder,
       referrerAddress,
-    })
+    });
 
     // NOTE not in Wyvern exchange code:
     // frontend checks to make sure
     // token is approved and sufficiently available
-    await this._buyOrderValidationAndApprovals({ order, accountAddress })
+    await this._buyOrderValidationAndApprovals({ order, accountAddress });
 
     const hashedOrder = {
       ...order,
       hash: getOrderHash(order),
-    }
-    let signature
+    };
+    let signature;
     try {
-      signature = await this._authorizeOrder(hashedOrder)
+      signature = await this._authorizeOrder(hashedOrder);
     } catch (error) {
-      console.error(error)
-      throw new Error("You declined to authorize your offer")
+      console.error(error);
+      throw new Error("You declined to authorize your offer");
     }
 
     const orderWithSignature = {
       ...hashedOrder,
       ...signature,
-    }
-    return this.validateAndPostOrder(orderWithSignature)
+    };
+    return this.validateAndPostOrder(orderWithSignature);
   }
 
   /**
@@ -761,7 +770,7 @@ export class OpenSeaPort {
     paymentTokenAddress =
       paymentTokenAddress ||
       // @ts-ignore
-      WyvernSchemas.tokens[this._networkName].canonicalWrappedEther.address
+      WyvernSchemas.tokens[this._networkName].canonicalWrappedEther.address;
 
     const order = await this._makeBuyOrder({
       asset,
@@ -774,36 +783,36 @@ export class OpenSeaPort {
       extraBountyBasisPoints: 0,
       sellOrder,
       referrerAddress,
-    })
+    });
 
     // NOTE not in Wyvern exchange code:
     // frontend checks to make sure
     // token is approved and sufficiently available
-    await this._buyOrderValidationAndApprovals({ order, accountAddress })
+    await this._buyOrderValidationAndApprovals({ order, accountAddress });
 
     const hashedOrder = {
       ...order,
       hash: getOrderHash(order),
-    }
-    let signature
+    };
+    let signature;
     try {
-      signature = await this._authorizeOrder(hashedOrder)
+      signature = await this._authorizeOrder(hashedOrder);
     } catch (error) {
-      console.error(error)
-      throw new Error("You declined to authorize your offer")
+      console.error(error);
+      throw new Error("You declined to authorize your offer");
     }
 
     const orderWithSignature = {
       ...hashedOrder,
       ...signature,
-    }
-    const messageHash = await this.getOrderMessageHash(orderWithSignature)
+    };
+    const messageHash = await this.getOrderMessageHash(orderWithSignature);
 
     return {
       ...orderWithSignature,
       // @ts-ignore
       messageHash,
-    }
+    };
     // return this.validateAndPostOrder(orderWithSignature);
   }
 
@@ -870,8 +879,8 @@ export class OpenSeaPort {
       paymentTokenAddress: paymentTokenAddress || NULL_ADDRESS,
       extraBountyBasisPoints,
       buyerAddress: buyerAddress || NULL_ADDRESS,
-    })
-    await this._sellOrderValidationAndApprovals({ order, accountAddress })
+    });
+    await this._sellOrderValidationAndApprovals({ order, accountAddress });
 
     // if (buyerEmail) {
     //   await this._createEmailWhitelistEntry({ order, buyerEmail })
@@ -880,29 +889,29 @@ export class OpenSeaPort {
     const hashedOrder = {
       ...order,
       hash: getOrderHash(order),
-    }
+    };
 
-    let signature
+    let signature;
     try {
-      signature = await this._authorizeOrder(hashedOrder)
+      signature = await this._authorizeOrder(hashedOrder);
     } catch (error) {
-      console.error(error)
-      throw new Error("You declined to authorize your auction")
+      console.error(error);
+      throw new Error("You declined to authorize your auction");
     }
 
     const orderWithSignature = {
       ...hashedOrder,
       ...signature,
-    }
-    const messageHash = await this.getOrderMessageHash(orderWithSignature)
+    };
+    const messageHash = await this.getOrderMessageHash(orderWithSignature);
 
     return {
       ...orderWithSignature,
       // @ts-ignore
       messageHash,
-    }
+    };
 
-    return this.validateAndPostOrder(orderWithSignature)
+    return this.validateAndPostOrder(orderWithSignature);
   }
 
   public async createSellOrderWithoutSign({
@@ -946,8 +955,8 @@ export class OpenSeaPort {
       paymentTokenAddress: paymentTokenAddress || NULL_ADDRESS,
       extraBountyBasisPoints,
       buyerAddress: buyerAddress || NULL_ADDRESS,
-    })
-    await this._sellOrderValidationAndApprovals({ order, accountAddress })
+    });
+    await this._sellOrderValidationAndApprovals({ order, accountAddress });
 
     // if (buyerEmail) {
     //   await this._createEmailWhitelistEntry({ order, buyerEmail })
@@ -956,9 +965,9 @@ export class OpenSeaPort {
     const hashedOrder = {
       ...order,
       hash: getOrderHash(order),
-    }
+    };
 
-    return hashedOrder
+    return hashedOrder;
   }
 
   /**
@@ -1010,19 +1019,19 @@ export class OpenSeaPort {
     buyerAddress?: string;
     buyerEmail?: string;
     numberOfOrders?: number;
-  }): Promise<number> {
+  }): Promise<any[]> {
     if (numberOfOrders < 1) {
-      throw new Error("Need to make at least one sell order")
+      throw new Error("Need to make at least one sell order");
     }
 
     if (!assets || !assets.length) {
-      throw new Error("Need at least one asset to create orders for")
+      throw new Error("Need at least one asset to create orders for");
     }
 
-    if (_.uniqBy(assets,a => a.tokenAddress).length !== 1) {
+    if (_.uniqBy(assets, (a) => a.tokenAddress).length !== 1) {
       throw new Error(
         "All assets must be on the same factory contract address"
-      )
+      );
     }
 
     // Validate just a single dummy order but don't post it
@@ -1038,11 +1047,11 @@ export class OpenSeaPort {
       paymentTokenAddress: paymentTokenAddress || NULL_ADDRESS,
       extraBountyBasisPoints,
       buyerAddress: buyerAddress || NULL_ADDRESS,
-    })
+    });
     await this._sellOrderValidationAndApprovals({
       order: dummyOrder,
       accountAddress,
-    })
+    });
 
     const _makeAndPostOneSellOrder = async (asset: Asset) => {
       const order = await this._makeSellOrder({
@@ -1057,37 +1066,39 @@ export class OpenSeaPort {
         paymentTokenAddress: paymentTokenAddress || NULL_ADDRESS,
         extraBountyBasisPoints,
         buyerAddress: buyerAddress || NULL_ADDRESS,
-      })
+      });
 
-      if (buyerEmail) {
-        await this._createEmailWhitelistEntry({ order, buyerEmail })
-      }
+      // if (buyerEmail) {
+      //   await this._createEmailWhitelistEntry({ order, buyerEmail });
+      // }
 
       const hashedOrder = {
         ...order,
         hash: getOrderHash(order),
-      }
-      let signature
+      };
+      let signature;
       try {
-        signature = await this._authorizeOrder(hashedOrder)
+        signature = await this._authorizeOrder(hashedOrder);
       } catch (error) {
-        console.error(error)
+        console.error(error);
         throw new Error(
           "You declined to authorize your auction, or your web3 provider can't sign using personal_sign. Try 'web3-provider-engine' and make sure a mnemonic is set. Just a reminder: there's no gas needed anymore to mint tokens!"
-        )
+        );
       }
 
       const orderWithSignature = {
         ...hashedOrder,
         ...signature,
-      }
+      };
+      return orderWithSignature;
 
-      return this.validateAndPostOrder(orderWithSignature)
-    }
+      // return this.validateAndPostOrder(orderWithSignature);
+    };
 
-    const range = _.range(numberOfOrders * assets.length)
-    const batches = _.chunk(range, SELL_ORDER_BATCH_SIZE)
-    let numOrdersCreated = 0
+    const range = _.range(numberOfOrders * assets.length);
+    const batches = _.chunk(range, SELL_ORDER_BATCH_SIZE);
+    let numOrdersCreated = 0;
+    let results: any[] = [];
 
     for (const subRange of batches) {
       // subRange = e.g. [5, 6, 7, 8, 9]
@@ -1096,23 +1107,24 @@ export class OpenSeaPort {
       // Will block until all SELL_ORDER_BATCH_SIZE orders
       // have come back in parallel
       const batchOrdersCreated = await Promise.all(
-        subRange.map(async assetOrderIndex => {
-          const assetIndex = Math.floor(assetOrderIndex / numberOfOrders)
-          return _makeAndPostOneSellOrder(assets[assetIndex])
+        subRange.map(async (assetOrderIndex) => {
+          const assetIndex = Math.floor(assetOrderIndex / numberOfOrders);
+          return _makeAndPostOneSellOrder(assets[assetIndex]);
         })
-      )
+      );
 
       this.logger(
         `Created and posted a batch of ${batchOrdersCreated.length} orders in parallel.`
-      )
+      );
 
-      numOrdersCreated += batchOrdersCreated.length
+      numOrdersCreated += batchOrdersCreated.length;
+      results = [...results, ...batchOrdersCreated];
 
       // Don't overwhelm router
-      await delay(500)
+      await delay(500);
     }
 
-    return numOrdersCreated
+    return results;
   }
 
   /**
@@ -1173,7 +1185,7 @@ export class OpenSeaPort {
     buyerAddress?: string;
   }): Promise<Order> {
     // Default to one of each asset
-    quantities = quantities || assets.map(a => 1)
+    quantities = quantities || assets.map((a) => 1);
 
     const order = await this._makeBundleSellOrder({
       bundleName,
@@ -1192,28 +1204,28 @@ export class OpenSeaPort {
       paymentTokenAddress: paymentTokenAddress || NULL_ADDRESS,
       extraBountyBasisPoints,
       buyerAddress: buyerAddress || NULL_ADDRESS,
-    })
+    });
 
-    await this._sellOrderValidationAndApprovals({ order, accountAddress })
+    await this._sellOrderValidationAndApprovals({ order, accountAddress });
 
     const hashedOrder = {
       ...order,
       hash: getOrderHash(order),
-    }
-    let signature
+    };
+    let signature;
     try {
-      signature = await this._authorizeOrder(hashedOrder)
+      signature = await this._authorizeOrder(hashedOrder);
     } catch (error) {
-      console.error(error)
-      throw new Error("You declined to authorize your auction")
+      console.error(error);
+      throw new Error("You declined to authorize your auction");
     }
 
     const orderWithSignature = {
       ...hashedOrder,
       ...signature,
-    }
+    };
 
-    return this.validateAndPostOrder(orderWithSignature)
+    return this.validateAndPostOrder(orderWithSignature);
   }
 
   /**
@@ -1240,27 +1252,27 @@ export class OpenSeaPort {
       order,
       accountAddress,
       recipientAddress: recipientAddress || accountAddress,
-    })
-    const { buy, sell } = assignOrdersToSides(order, matchingOrder)
-    const metadata = this._getMetadata(order, referrerAddress)
+    });
+    const { buy, sell } = assignOrdersToSides(order, matchingOrder);
+    const metadata = this._getMetadata(order, referrerAddress);
     const transactionHash = await this._atomicMatch({
       buy,
       sell,
       accountAddress,
       metadata,
-    })
+    });
 
     await this._confirmTransaction(
       transactionHash,
       EventType.MatchOrders,
       "Fulfilling order",
       async () => {
-        const isOpen = await this._validateOrder(order)
-        return !isOpen
+        const isOpen = await this._validateOrder(order);
+        return !isOpen;
       }
-    )
+    );
 
-    return transactionHash
+    return transactionHash;
   }
 
   /**
@@ -1276,9 +1288,9 @@ export class OpenSeaPort {
     order: Order;
     accountAddress: string;
   }) {
-    this._dispatch(EventType.CancelOrder, { order, accountAddress })
+    this._dispatch(EventType.CancelOrder, { order, accountAddress });
 
-    const gasPrice = await this._computeGasPrice()
+    const gasPrice = await this._computeGasPrice();
     const transactionHash =
       await this._wyvernProtocol.wyvernExchange.cancelOrder_.sendTransactionAsync(
         [
@@ -1312,17 +1324,17 @@ export class OpenSeaPort {
         order.r || NULL_BLOCK_HASH,
         order.s || NULL_BLOCK_HASH,
         { from: accountAddress, gasPrice }
-      )
+      );
 
     await this._confirmTransaction(
       transactionHash.toString(),
       EventType.CancelOrder,
       "Cancelling order",
       async () => {
-        const isOpen = await this._validateOrder(order)
-        return !isOpen
+        const isOpen = await this._validateOrder(order);
+        return !isOpen;
       }
-    )
+    );
   }
 
   /**
@@ -1360,14 +1372,14 @@ export class OpenSeaPort {
     skipApproveAllIfTokenAddressIn?: Set<string>;
     schemaName?: WyvernSchemaName;
   }): Promise<string | null> {
-    const schema = this._getSchema(schemaName)
-    const tokenContract = this.web3.eth.contract(tokenAbi as any[])
-    const contract = await tokenContract.at(tokenAddress)
+    const schema = this._getSchema(schemaName);
+    const tokenContract = this.web3.eth.contract(tokenAbi as any[]);
+    const contract = await tokenContract.at(tokenAddress);
 
     if (!proxyAddress) {
-      proxyAddress = (await this._getProxy(accountAddress)) || undefined
+      proxyAddress = (await this._getProxy(accountAddress)) || undefined;
       if (!proxyAddress) {
-        throw new Error("Uninitialized account")
+        throw new Error("Uninitialized account");
       }
     }
 
@@ -1378,15 +1390,15 @@ export class OpenSeaPort {
         from: accountAddress,
         to: contract.address,
         data: contract.isApprovedForAll.getData(accountAddress, proxyAddress),
-      })
-      return parseInt(isApprovedForAllRaw)
-    }
-    const isApprovedForAll = await approvalAllCheck()
+      });
+      return parseInt(isApprovedForAllRaw);
+    };
+    const isApprovedForAll = await approvalAllCheck();
 
     if (isApprovedForAll == 1) {
       // Supports ApproveAll
-      this.logger("Already approved proxy for all tokens")
-      return null
+      this.logger("Already approved proxy for all tokens");
+      return null;
     }
 
     if (isApprovedForAll == 0) {
@@ -1396,19 +1408,19 @@ export class OpenSeaPort {
       if (skipApproveAllIfTokenAddressIn.has(tokenAddress)) {
         this.logger(
           "Already approving proxy for all tokens in another transaction"
-        )
-        return null
+        );
+        return null;
       }
-      skipApproveAllIfTokenAddressIn.add(tokenAddress)
+      skipApproveAllIfTokenAddressIn.add(tokenAddress);
 
       try {
         this._dispatch(EventType.ApproveAllAssets, {
           accountAddress,
           proxyAddress,
           contractAddress: tokenAddress,
-        })
+        });
 
-        const gasPrice = await this._computeGasPrice()
+        const gasPrice = await this._computeGasPrice();
         const txHash = await sendRawTransaction(
           this.web3,
           {
@@ -1416,44 +1428,45 @@ export class OpenSeaPort {
             to: contract.address,
             data: contract.setApprovalForAll.getData(proxyAddress, true),
             gasPrice,
-          },error => {
+          },
+          (error) => {
             this._dispatch(EventType.TransactionDenied, {
               error,
               accountAddress,
-            })
+            });
           }
-        )
+        );
         await this._confirmTransaction(
           txHash,
           EventType.ApproveAllAssets,
           "Approving all tokens of this type for trading",
           async () => {
-            const result = await approvalAllCheck()
-            return result == 1
+            const result = await approvalAllCheck();
+            return result == 1;
           }
-        )
-        return txHash
+        );
+        return txHash;
       } catch (error) {
-        console.error(error)
+        console.error(error);
         throw new Error(
           "Couldn't get permission to approve these tokens for trading. Their contract might not be implemented correctly. Please contact the developer!"
-        )
+        );
       }
     }
 
     // Does not support ApproveAll (ERC721 v1 or v2)
-    this.logger("Contract does not support Approve All")
+    this.logger("Contract does not support Approve All");
 
     const approvalOneCheck = async () => {
       // Note: approvedAddr will be '0x' if not supported
-      let approvedAddr = await promisifyCall<string>(c =>
+      let approvedAddr = await promisifyCall<string>((c) =>
         contract.getApproved.call(tokenId, c)
-      )
+      );
       if (approvedAddr == proxyAddress) {
-        this.logger("Already approved proxy for this token")
-        return true
+        this.logger("Already approved proxy for this token");
+        return true;
       }
-      this.logger(`Approve response: ${approvedAddr}`)
+      this.logger(`Approve response: ${approvedAddr}`);
 
       // SPECIAL CASING non-compliant contracts
       if (!approvedAddr) {
@@ -1461,19 +1474,19 @@ export class OpenSeaPort {
           contract,
           tokenId,
           accountAddress
-        )
+        );
         if (approvedAddr == proxyAddress) {
-          this.logger("Already approved proxy for this item")
-          return true
+          this.logger("Already approved proxy for this item");
+          return true;
         }
-        this.logger(`Special-case approve response: ${approvedAddr}`)
+        this.logger(`Special-case approve response: ${approvedAddr}`);
       }
-      return false
-    }
+      return false;
+    };
 
-    const isApprovedForOne = await approvalOneCheck()
+    const isApprovedForOne = await approvalOneCheck();
     if (isApprovedForOne) {
-      return null
+      return null;
     }
 
     // Call `approve`
@@ -1483,9 +1496,9 @@ export class OpenSeaPort {
         accountAddress,
         proxyAddress,
         asset: getWyvernAsset(schema, { tokenId, tokenAddress }),
-      })
+      });
 
-      const gasPrice = await this._computeGasPrice()
+      const gasPrice = await this._computeGasPrice();
       const txHash = await sendRawTransaction(
         this.web3,
         {
@@ -1493,26 +1506,27 @@ export class OpenSeaPort {
           to: contract.address,
           data: contract.approve.getData(proxyAddress, tokenId),
           gasPrice,
-        },error => {
+        },
+        (error) => {
           this._dispatch(EventType.TransactionDenied, {
             error,
             accountAddress,
-          })
+          });
         }
-      )
+      );
 
       await this._confirmTransaction(
         txHash,
         EventType.ApproveAsset,
         "Approving single token for trading",
         approvalOneCheck
-      )
-      return txHash
+      );
+      return txHash;
     } catch (error) {
-      console.error(error)
+      console.error(error);
       throw new Error(
         "Couldn't get permission to approve this token for trading. Its contract might not be implemented correctly. Please contact the developer!"
-      )
+      );
     }
   }
 
@@ -1540,32 +1554,32 @@ export class OpenSeaPort {
   }): Promise<string | null> {
     proxyAddress =
       proxyAddress ||
-      WyvernProtocol.getTokenTransferProxyAddress(this._networkName)
+      WyvernProtocol.getTokenTransferProxyAddress(this._networkName);
 
     const approvedAmount = await this._getApprovedTokenCount({
       accountAddress,
       tokenAddress,
       proxyAddress,
-    })
+    });
 
     if (approvedAmount.greaterThanOrEqualTo(minimumAmount)) {
-      this.logger("Already approved enough currency for trading")
-      return null
+      this.logger("Already approved enough currency for trading");
+      return null;
     }
 
     this.logger(
       `Not enough token approved for trade: ${approvedAmount} approved to transfer ${tokenAddress}`
-    )
+    );
 
     this._dispatch(EventType.ApproveCurrency, {
       accountAddress,
       contractAddress: tokenAddress,
       proxyAddress,
-    })
+    });
 
     const hasOldApproveMethod = [ENJIN_COIN_ADDRESS, MANA_ADDRESS].includes(
       tokenAddress.toLowerCase()
-    )
+    );
 
     if (minimumAmount.greaterThan(0) && hasOldApproveMethod) {
       // Older erc20s require initial approval to be 0
@@ -1573,10 +1587,10 @@ export class OpenSeaPort {
         accountAddress,
         tokenAddress,
         proxyAddress,
-      })
+      });
     }
 
-    const gasPrice = await this._computeGasPrice()
+    const gasPrice = await this._computeGasPrice();
     const txHash = await sendRawTransaction(
       this.web3,
       {
@@ -1589,10 +1603,11 @@ export class OpenSeaPort {
           [proxyAddress, WyvernProtocol.MAX_UINT_256.toString()]
         ),
         gasPrice,
-      },error => {
-        this._dispatch(EventType.TransactionDenied, { error, accountAddress })
+      },
+      (error) => {
+        this._dispatch(EventType.TransactionDenied, { error, accountAddress });
       }
-    )
+    );
 
     await this._confirmTransaction(
       txHash,
@@ -1603,11 +1618,11 @@ export class OpenSeaPort {
           accountAddress,
           tokenAddress,
           proxyAddress,
-        })
-        return newlyApprovedAmount.greaterThanOrEqualTo(minimumAmount)
+        });
+        return newlyApprovedAmount.greaterThanOrEqualTo(minimumAmount);
       }
-    )
-    return txHash
+    );
+    return txHash;
   }
 
   /**
@@ -1632,9 +1647,9 @@ export class OpenSeaPort {
   }): Promise<string> {
     proxyAddress =
       proxyAddress ||
-      WyvernProtocol.getTokenTransferProxyAddress(this._networkName)
+      WyvernProtocol.getTokenTransferProxyAddress(this._networkName);
 
-    const gasPrice = await this._computeGasPrice()
+    const gasPrice = await this._computeGasPrice();
 
     const txHash = await sendRawTransaction(
       this.web3,
@@ -1643,10 +1658,11 @@ export class OpenSeaPort {
         to: tokenAddress,
         data: encodeCall(getMethod(ERC20, "approve"), [proxyAddress, 0]),
         gasPrice,
-      },error => {
-        this._dispatch(EventType.TransactionDenied, { error, accountAddress })
+      },
+      (error) => {
+        this._dispatch(EventType.TransactionDenied, { error, accountAddress });
       }
-    )
+    );
 
     await this._confirmTransaction(
       txHash,
@@ -1657,11 +1673,11 @@ export class OpenSeaPort {
           accountAddress,
           tokenAddress,
           proxyAddress,
-        })
-        return newlyApprovedAmount.isZero()
+        });
+        return newlyApprovedAmount.isZero();
       }
-    )
-    return txHash
+    );
+    return txHash;
   }
 
   /**
@@ -1698,8 +1714,8 @@ export class OpenSeaPort {
         order.calldata,
         order.replacementPattern,
         order.staticExtradata
-      )
-    return currentPrice
+      );
+    return currentPrice;
   }
 
   /**
@@ -1728,25 +1744,25 @@ export class OpenSeaPort {
       order,
       accountAddress,
       recipientAddress: recipientAddress || accountAddress,
-    })
+    });
 
-    const { buy, sell } = assignOrdersToSides(order, matchingOrder)
+    const { buy, sell } = assignOrdersToSides(order, matchingOrder);
 
-    const metadata = this._getMetadata(order, referrerAddress)
+    const metadata = this._getMetadata(order, referrerAddress);
     const gas = await this._estimateGasForMatch({
       buy,
       sell,
       accountAddress,
       metadata,
-    })
+    });
 
     this.logger(
       `Gas estimate for ${
         order.side == OrderSide.Sell ? "sell" : "buy"
       } order: ${gas}`
-    )
+    );
 
-    return gas != null && gas > 0
+    return gas != null && gas > 0;
   }
 
   /**
@@ -1780,48 +1796,48 @@ export class OpenSeaPort {
     },
     retries = 1
   ): Promise<boolean> {
-    const schema = this._getSchema(asset.schemaName)
+    const schema = this._getSchema(asset.schemaName);
     const quantityBN = quantity
       ? WyvernProtocol.toBaseUnitAmount(
           makeBigNumber(quantity),
           asset.decimals || 0
         )
-      : makeBigNumber(1)
-    const wyAsset = getWyvernAsset(schema, asset, quantityBN)
-    const abi = schema.functions.transfer(wyAsset)
+      : makeBigNumber(1);
+    const wyAsset = getWyvernAsset(schema, asset, quantityBN);
+    const abi = schema.functions.transfer(wyAsset);
 
-    let from = fromAddress
+    let from = fromAddress;
     if (useProxy) {
-      const proxyAddress = await this._getProxy(fromAddress)
+      const proxyAddress = await this._getProxy(fromAddress);
       if (!proxyAddress) {
         console.error(
           `This asset's owner (${fromAddress}) does not have a proxy!`
-        )
-        return false
+        );
+        return false;
       }
-      from = proxyAddress
+      from = proxyAddress;
     }
 
-    const data = encodeTransferCall(abi, fromAddress, toAddress)
+    const data = encodeTransferCall(abi, fromAddress, toAddress);
 
     try {
       const gas = await estimateGas(this._getClientsForRead(retries).web3, {
         from,
         to: abi.target,
         data,
-      })
-      return gas > 0
+      });
+      return gas > 0;
     } catch (error) {
       if (retries <= 0) {
-        console.error(error)
-        console.error(from, abi.target, data)
-        return false
+        console.error(error);
+        console.error(from, abi.target, data);
+        return false;
       }
-      await delay(500)
+      await delay(500);
       return await this.isAssetTransferrable(
         { asset, fromAddress, toAddress, quantity, useProxy },
         retries - 1
-      )
+      );
     }
   }
 
@@ -1845,15 +1861,15 @@ export class OpenSeaPort {
     asset: Asset;
     quantity?: number | BigNumber;
   }): Promise<string> {
-    const schema = this._getSchema(asset.schemaName)
+    const schema = this._getSchema(asset.schemaName);
     const quantityBN = WyvernProtocol.toBaseUnitAmount(
       makeBigNumber(quantity),
       asset.decimals || 0
-    )
-    const wyAsset = getWyvernAsset(schema, asset, quantityBN)
+    );
+    const wyAsset = getWyvernAsset(schema, asset, quantityBN);
     const isCryptoKitties = [CK_ADDRESS, CK_RINKEBY_ADDRESS].includes(
       wyAsset.address
-    )
+    );
     // Since CK is common, infer isOldNFT from it in case user
     // didn't pass in `version`
     const isOldNFT =
@@ -1861,23 +1877,23 @@ export class OpenSeaPort {
       (!!asset.version &&
         [TokenStandardVersion.ERC721v1, TokenStandardVersion.ERC721v2].includes(
           asset.version
-        ))
+        ));
 
     const abi =
       asset.schemaName === WyvernSchemaName.ERC20
         ? annotateERC20TransferABI(wyAsset as WyvernFTAsset)
         : isOldNFT
         ? annotateERC721TransferABI(wyAsset as WyvernNFTAsset)
-        : schema.functions.transfer(wyAsset)
+        : schema.functions.transfer(wyAsset);
 
     this._dispatch(EventType.TransferOne, {
       accountAddress: fromAddress,
       toAddress,
       asset: wyAsset,
-    })
+    });
 
-    const gasPrice = await this._computeGasPrice()
-    const data = encodeTransferCall(abi, fromAddress, toAddress)
+    const gasPrice = await this._computeGasPrice();
+    const data = encodeTransferCall(abi, fromAddress, toAddress);
     const txHash = await sendRawTransaction(
       this.web3,
       {
@@ -1885,20 +1901,21 @@ export class OpenSeaPort {
         to: abi.target,
         data,
         gasPrice,
-      },error => {
+      },
+      (error) => {
         this._dispatch(EventType.TransactionDenied, {
           error,
           accountAddress: fromAddress,
-        })
+        });
       }
-    )
+    );
 
     await this._confirmTransaction(
       txHash,
       EventType.TransferOne,
       `Transferring asset`
-    )
-    return txHash
+    );
+    return txHash;
   }
 
   /**
@@ -1922,25 +1939,25 @@ export class OpenSeaPort {
     toAddress: string;
     schemaName?: WyvernSchemaName;
   }): Promise<string> {
-    toAddress = validateAndFormatWalletAddress(this.web3, toAddress)
+    toAddress = validateAndFormatWalletAddress(this.web3, toAddress);
 
-    const schemaNames = assets.map(asset => asset.schemaName || schemaName)
-    const wyAssets = assets.map(asset =>
+    const schemaNames = assets.map((asset) => asset.schemaName || schemaName);
+    const wyAssets = assets.map((asset) =>
       getWyvernAsset(this._getSchema(asset.schemaName), asset)
-    )
+    );
 
     const { calldata, target } = encodeAtomicizedTransfer(
-      schemaNames.map(name => this._getSchema(name)),
+      schemaNames.map((name) => this._getSchema(name)),
       wyAssets,
       fromAddress,
       toAddress,
       this._wyvernProtocol,
       this._networkName
-    )
+    );
 
-    let proxyAddress = await this._getProxy(fromAddress)
+    let proxyAddress = await this._getProxy(fromAddress);
     if (!proxyAddress) {
-      proxyAddress = await this._initializeProxy(fromAddress)
+      proxyAddress = await this._initializeProxy(fromAddress);
     }
 
     await this._approveAll({
@@ -1948,15 +1965,15 @@ export class OpenSeaPort {
       wyAssets,
       accountAddress: fromAddress,
       proxyAddress,
-    })
+    });
 
     this._dispatch(EventType.TransferAll, {
       accountAddress: fromAddress,
       toAddress,
       assets: wyAssets,
-    })
+    });
 
-    const gasPrice = await this._computeGasPrice()
+    const gasPrice = await this._computeGasPrice();
     const txHash = await sendRawTransaction(
       this.web3,
       {
@@ -1964,20 +1981,21 @@ export class OpenSeaPort {
         to: proxyAddress,
         data: encodeProxyCall(target, HowToCall.DelegateCall, calldata),
         gasPrice,
-      },error => {
+      },
+      (error) => {
         this._dispatch(EventType.TransactionDenied, {
           error,
           accountAddress: fromAddress,
-        })
+        });
       }
-    )
+    );
 
     await this._confirmTransaction(
       txHash,
       EventType.TransferAll,
       `Transferring ${assets.length} asset${assets.length == 1 ? "" : "s"}`
-    )
-    return txHash
+    );
+    return txHash;
   }
 
   /**
@@ -2000,33 +2018,33 @@ export class OpenSeaPort {
   }: { symbol?: string; address?: string; name?: string } = {}): Promise<
     OpenSeaFungibleToken[]
   > {
-    onDeprecated("Use `api.getPaymentTokens` instead")
+    onDeprecated("Use `api.getPaymentTokens` instead");
     // @ts-ignore
-    const tokenSettings = WyvernSchemas.tokens[this._networkName]
+    const tokenSettings = WyvernSchemas.tokens[this._networkName];
 
     const { tokens } = await this.api.getPaymentTokens({
       symbol,
       address,
       name,
-    })
+    });
 
     const offlineTokens: OpenSeaFungibleToken[] = [
       tokenSettings.canonicalWrappedEther,
       ...tokenSettings.otherTokens,
-    ].filter(t => {
+    ].filter((t) => {
       if (symbol != null && t.symbol.toLowerCase() != symbol.toLowerCase()) {
-        return false
+        return false;
       }
       if (address != null && t.address.toLowerCase() != address.toLowerCase()) {
-        return false
+        return false;
       }
       if (name != null && t.name != name) {
-        return false
+        return false;
       }
-      return true
-    })
+      return true;
+    });
 
-    return [...offlineTokens, ...tokens]
+    return [...offlineTokens, ...tokens];
   }
 
   /**
@@ -2040,59 +2058,59 @@ export class OpenSeaPort {
     { accountAddress, asset }: { accountAddress: string; asset: Asset },
     retries = 1
   ): Promise<BigNumber> {
-    const schema = this._getSchema(asset.schemaName)
-    const wyAsset = getWyvernAsset(schema, asset)
+    const schema = this._getSchema(asset.schemaName);
+    const wyAsset = getWyvernAsset(schema, asset);
 
     if (schema.functions.countOf) {
       // ERC20 or ERC1155 (non-Enjin)
 
-      const abi = schema.functions.countOf(wyAsset)
+      const abi = schema.functions.countOf(wyAsset);
       const contract = this._getClientsForRead(retries)
         .web3.eth.contract([abi as Web3.FunctionAbi])
-        .at(abi.target)
+        .at(abi.target);
       const inputValues = abi.inputs
-        .filter(x => x.value !== undefined)
-        .map(x => x.value)
-      const count = await promisifyCall<BigNumber>(c =>
+        .filter((x) => x.value !== undefined)
+        .map((x) => x.value);
+      const count = await promisifyCall<BigNumber>((c) =>
         contract[abi.name].call(accountAddress, ...inputValues, c)
-      )
+      );
 
       if (count !== undefined) {
-        return count
+        return count;
       }
     } else if (schema.functions.ownerOf) {
       // ERC721 asset
 
-      const abi = schema.functions.ownerOf(wyAsset)
+      const abi = schema.functions.ownerOf(wyAsset);
       const contract = this._getClientsForRead(retries)
         .web3.eth.contract([abi as Web3.FunctionAbi])
-        .at(abi.target)
-      if (abi.inputs.filter(x => x.value === undefined)[0]) {
+        .at(abi.target);
+      if (abi.inputs.filter((x) => x.value === undefined)[0]) {
         throw new Error(
           "Missing an argument for finding the owner of this asset"
-        )
+        );
       }
-      const inputValues = abi.inputs.map(i => i.value.toString())
-      const owner = await promisifyCall<string>(c =>
+      const inputValues = abi.inputs.map((i) => i.value.toString());
+      const owner = await promisifyCall<string>((c) =>
         contract[abi.name].call(...inputValues, c)
-      )
+      );
       if (owner) {
         return owner.toLowerCase() == accountAddress.toLowerCase()
           ? new BigNumber(1)
-          : new BigNumber(0)
+          : new BigNumber(0);
       }
     } else {
       // Missing ownership call - skip check to allow listings
       // by default
-      throw new Error("Missing ownership schema for this asset type")
+      throw new Error("Missing ownership schema for this asset type");
     }
 
     if (retries <= 0) {
-      throw new Error("Unable to get current owner from smart contract")
+      throw new Error("Unable to get current owner from smart contract");
     } else {
-      await delay(500)
+      await delay(500);
       // Recursively check owner again
-      return await this.getAssetBalance({ accountAddress, asset }, retries - 1)
+      return await this.getAssetBalance({ accountAddress, asset }, retries - 1);
     }
   }
 
@@ -2121,8 +2139,8 @@ export class OpenSeaPort {
       tokenId: null,
       tokenAddress,
       schemaName,
-    }
-    return this.getAssetBalance({ accountAddress, asset }, retries)
+    };
+    return this.getAssetBalance({ accountAddress, asset }, retries);
   }
 
   /**
@@ -2147,22 +2165,22 @@ export class OpenSeaPort {
     isPrivate?: boolean;
     extraBountyBasisPoints?: number;
   }): Promise<ComputedFees> {
-    let openseaBuyerFeeBasisPoints = DEFAULT_BUYER_FEE_BASIS_POINTS
-    let openseaSellerFeeBasisPoints = DEFAULT_SELLER_FEE_BASIS_POINTS
-    let devBuyerFeeBasisPoints = 0
-    let devSellerFeeBasisPoints = 0
-    let transferFee = makeBigNumber(0)
-    let transferFeeTokenAddress = null
-    let maxTotalBountyBPS = DEFAULT_MAX_BOUNTY
+    let openseaBuyerFeeBasisPoints = DEFAULT_BUYER_FEE_BASIS_POINTS;
+    let openseaSellerFeeBasisPoints = DEFAULT_SELLER_FEE_BASIS_POINTS;
+    let devBuyerFeeBasisPoints = 0;
+    let devSellerFeeBasisPoints = 0;
+    let transferFee = makeBigNumber(0);
+    let transferFeeTokenAddress = null;
+    let maxTotalBountyBPS = DEFAULT_MAX_BOUNTY;
 
     if (asset) {
-      openseaBuyerFeeBasisPoints = +asset.collection.openseaBuyerFeeBasisPoints
+      openseaBuyerFeeBasisPoints = +asset.collection.openseaBuyerFeeBasisPoints;
       openseaSellerFeeBasisPoints =
-        +asset.collection.openseaSellerFeeBasisPoints
-      devBuyerFeeBasisPoints = +asset.collection.devBuyerFeeBasisPoints
-      devSellerFeeBasisPoints = +asset.collection.devSellerFeeBasisPoints
+        +asset.collection.openseaSellerFeeBasisPoints;
+      devBuyerFeeBasisPoints = +asset.collection.devBuyerFeeBasisPoints;
+      devSellerFeeBasisPoints = +asset.collection.devSellerFeeBasisPoints;
 
-      maxTotalBountyBPS = openseaSellerFeeBasisPoints
+      maxTotalBountyBPS = openseaSellerFeeBasisPoints;
     }
 
     // Compute transferFrom fees
@@ -2170,54 +2188,54 @@ export class OpenSeaPort {
       // Server-side knowledge
       transferFee = asset.transferFee
         ? makeBigNumber(asset.transferFee)
-        : transferFee
+        : transferFee;
       transferFeeTokenAddress = asset.transferFeePaymentToken
         ? asset.transferFeePaymentToken.address
-        : transferFeeTokenAddress
+        : transferFeeTokenAddress;
 
       try {
         // web3 call to update it
         const result = await getTransferFeeSettings(this.web3, {
           asset,
           accountAddress,
-        })
+        });
         transferFee =
-          result.transferFee != null ? result.transferFee : transferFee
+          result.transferFee != null ? result.transferFee : transferFee;
         transferFeeTokenAddress =
-          result.transferFeeTokenAddress || transferFeeTokenAddress
+          result.transferFeeTokenAddress || transferFeeTokenAddress;
       } catch (error) {
         // Use server defaults
-        console.error(error)
+        console.error(error);
       }
     }
 
     // Compute bounty
     let sellerBountyBasisPoints =
-      side == OrderSide.Sell ? extraBountyBasisPoints : 0
+      side == OrderSide.Sell ? extraBountyBasisPoints : 0;
 
     // Check that bounty is in range of the opensea fee
     const bountyTooLarge =
       sellerBountyBasisPoints + OPENSEA_SELLER_BOUNTY_BASIS_POINTS >
-      maxTotalBountyBPS
+      maxTotalBountyBPS;
     if (sellerBountyBasisPoints > 0 && bountyTooLarge) {
       let errorMessage = `Total bounty exceeds the maximum for this asset type (${
         maxTotalBountyBPS / 100
-      }%).`
+      }%).`;
       if (maxTotalBountyBPS >= OPENSEA_SELLER_BOUNTY_BASIS_POINTS) {
         errorMessage += ` Remember that OpenSea will add ${
           OPENSEA_SELLER_BOUNTY_BASIS_POINTS / 100
-        }% for referrers with OpenSea accounts!`
+        }% for referrers with OpenSea accounts!`;
       }
-      throw new Error(errorMessage)
+      throw new Error(errorMessage);
     }
 
     // Remove fees for private orders
     if (isPrivate) {
-      openseaBuyerFeeBasisPoints = 0
-      openseaSellerFeeBasisPoints = 0
-      devBuyerFeeBasisPoints = 0
-      devSellerFeeBasisPoints = 0
-      sellerBountyBasisPoints = 0
+      openseaBuyerFeeBasisPoints = 0;
+      openseaSellerFeeBasisPoints = 0;
+      devBuyerFeeBasisPoints = 0;
+      devSellerFeeBasisPoints = 0;
+      sellerBountyBasisPoints = 0;
     }
 
     return {
@@ -2232,7 +2250,7 @@ export class OpenSeaPort {
       sellerBountyBasisPoints,
       transferFee,
       transferFeeTokenAddress,
-    }
+    };
   }
 
   /**
@@ -2270,19 +2288,19 @@ export class OpenSeaPort {
         order.calldata,
         order.replacementPattern,
         order.staticExtradata
-      )
+      );
 
     if (hash !== order.hash) {
-      console.error(order)
+      console.error(order);
       throw new Error(
         `Order couldn't be validated by the exchange due to a hash mismatch. Make sure your wallet is on the right network!`
-      )
+      );
     }
-    this.logger("Order hashes match")
+    this.logger("Order hashes match");
 
     // Validation is called server-side
-    const confirmedOrder = await this.api.postOrder(orderToJSON(order))
-    return confirmedOrder
+    const confirmedOrder = await this.api.postOrder(orderToJSON(order));
+    return confirmedOrder;
   }
 
   /**
@@ -2320,10 +2338,10 @@ export class OpenSeaPort {
         order.calldata,
         order.replacementPattern,
         order.staticExtradata
-      )
+      );
 
-    this.logger("Order hashes match")
-    return hash
+    this.logger("Order hashes match");
+    return hash;
   }
 
   /**
@@ -2331,9 +2349,9 @@ export class OpenSeaPort {
    * Will be slightly above the mean to make it faster
    */
   public async _computeGasPrice(): Promise<BigNumber> {
-    const meanGas = await getCurrentGasPrice(this.web3)
-    const weiToAdd = this.web3.toWei(this.gasPriceAddition, "gwei")
-    return meanGas.plus(weiToAdd)
+    const meanGas = await getCurrentGasPrice(this.web3);
+    const weiToAdd = this.web3.toWei(this.gasPriceAddition, "gwei");
+    return meanGas.plus(weiToAdd);
   }
 
   /**
@@ -2342,7 +2360,7 @@ export class OpenSeaPort {
    * @param estimation The result of estimateGas for a transaction
    */
   public _correctGasAmount(estimation: number): number {
-    return Math.ceil(estimation * this.gasIncreaseFactor)
+    return Math.ceil(estimation * this.gasIncreaseFactor);
   }
 
   /**
@@ -2363,12 +2381,12 @@ export class OpenSeaPort {
     }: { buy: Order; sell: Order; accountAddress: string; metadata?: string },
     retries = 1
   ): Promise<number | undefined> {
-    let value
+    let value;
     if (
       buy.maker.toLowerCase() == accountAddress.toLowerCase() &&
       buy.paymentToken == NULL_ADDRESS
     ) {
-      value = await this._getRequiredAmountForTakingSellOrder(sell)
+      value = await this._getRequiredAmountForTakingSellOrder(sell);
     }
 
     try {
@@ -2437,17 +2455,17 @@ export class OpenSeaPort {
         ],
         // Typescript error in estimate gas method, so use any
         { from: accountAddress, value } as any
-      )
+      );
     } catch (error) {
       if (retries <= 0) {
-        console.error(error)
-        return undefined
+        console.error(error);
+        return undefined;
       }
-      await delay(200)
+      await delay(200);
       return await this._estimateGasForMatch(
         { buy, sell, accountAddress, metadata },
         retries - 1
-      )
+      );
     }
   }
 
@@ -2471,14 +2489,14 @@ export class OpenSeaPort {
     toAddress: string;
     schemaName?: WyvernSchemaName;
   }): Promise<number> {
-    const schemaNames = assets.map(asset => asset.schemaName || schemaName)
-    const wyAssets = assets.map(asset =>
+    const schemaNames = assets.map((asset) => asset.schemaName || schemaName);
+    const wyAssets = assets.map((asset) =>
       getWyvernAsset(this._getSchema(asset.schemaName), asset)
-    )
+    );
 
-    const proxyAddress = await this._getProxy(fromAddress)
+    const proxyAddress = await this._getProxy(fromAddress);
     if (!proxyAddress) {
-      throw new Error("Uninitialized proxy address")
+      throw new Error("Uninitialized proxy address");
     }
 
     await this._approveAll({
@@ -2486,22 +2504,22 @@ export class OpenSeaPort {
       wyAssets,
       accountAddress: fromAddress,
       proxyAddress,
-    })
+    });
 
     const { calldata, target } = encodeAtomicizedTransfer(
-      schemaNames.map(name => this._getSchema(name)),
+      schemaNames.map((name) => this._getSchema(name)),
       wyAssets,
       fromAddress,
       toAddress,
       this._wyvernProtocol,
       this._networkName
-    )
+    );
 
     return estimateGas(this.web3, {
       from: fromAddress,
       to: proxyAddress,
       data: encodeProxyCall(target, HowToCall.DelegateCall, calldata),
-    })
+    });
   }
 
   /**
@@ -2517,22 +2535,22 @@ export class OpenSeaPort {
     let proxyAddress: string | null =
       await this._wyvernProtocolReadOnly.wyvernProxyRegistry.proxies.callAsync(
         accountAddress
-      )
+      );
 
     if (proxyAddress == "0x") {
       throw new Error(
         "Couldn't retrieve your account from the blockchain - make sure you're on the correct Ethereum network!"
-      )
+      );
     }
 
     if (!proxyAddress || proxyAddress == NULL_ADDRESS) {
       if (retries > 0) {
-        await delay(1000)
-        return await this._getProxy(accountAddress, retries - 1)
+        await delay(1000);
+        return await this._getProxy(accountAddress, retries - 1);
       }
-      proxyAddress = null
+      proxyAddress = null;
     }
-    return proxyAddress
+    return proxyAddress;
   }
 
   /**
@@ -2543,15 +2561,15 @@ export class OpenSeaPort {
    * @param accountAddress The user's wallet address
    */
   public async _initializeProxy(accountAddress: string): Promise<string> {
-    this._dispatch(EventType.InitializeAccount, { accountAddress })
-    this.logger(`Initializing proxy for account: ${accountAddress}`)
+    this._dispatch(EventType.InitializeAccount, { accountAddress });
+    this.logger(`Initializing proxy for account: ${accountAddress}`);
 
-    const gasPrice = await this._computeGasPrice()
-    const txnData: any = { from: accountAddress }
+    const gasPrice = await this._computeGasPrice();
+    const txnData: any = { from: accountAddress };
     const gasEstimate =
       await this._wyvernProtocolReadOnly.wyvernProxyRegistry.registerProxy.estimateGasAsync(
         txnData
-      )
+      );
     const transactionHash =
       await this._wyvernProtocol.wyvernProxyRegistry.registerProxy.sendTransactionAsync(
         {
@@ -2559,26 +2577,26 @@ export class OpenSeaPort {
           gasPrice,
           gas: this._correctGasAmount(gasEstimate),
         }
-      )
+      );
 
     await this._confirmTransaction(
       transactionHash,
       EventType.InitializeAccount,
       "Initializing proxy for account",
       async () => {
-        const polledProxy = await this._getProxy(accountAddress)
-        return !!polledProxy
+        const polledProxy = await this._getProxy(accountAddress);
+        return !!polledProxy;
       }
-    )
+    );
 
-    const proxyAddress = await this._getProxy(accountAddress, 2)
+    const proxyAddress = await this._getProxy(accountAddress, 2);
     if (!proxyAddress) {
       throw new Error(
         "Failed to initialize your account :( Please restart your wallet/browser and try again!"
-      )
+      );
     }
 
-    return proxyAddress
+    return proxyAddress;
   }
 
   /**
@@ -2602,11 +2620,11 @@ export class OpenSeaPort {
     if (!tokenAddress) {
       tokenAddress =
         // @ts-ignore
-        WyvernSchemas.tokens[this._networkName].canonicalWrappedEther.address
+        WyvernSchemas.tokens[this._networkName].canonicalWrappedEther.address;
     }
     const addressToApprove =
       proxyAddress ||
-      WyvernProtocol.getTokenTransferProxyAddress(this._networkName)
+      WyvernProtocol.getTokenTransferProxyAddress(this._networkName);
     const approved = await rawCall(this.web3, {
       from: accountAddress,
       to: tokenAddress,
@@ -2614,8 +2632,8 @@ export class OpenSeaPort {
         accountAddress,
         addressToApprove,
       ]),
-    })
-    return makeBigNumber(approved)
+    });
+    return makeBigNumber(approved);
   }
 
   public async _makeBuyOrder({
@@ -2639,26 +2657,26 @@ export class OpenSeaPort {
     sellOrder?: UnhashedOrder;
     referrerAddress?: string;
   }): Promise<UnhashedOrder> {
-    accountAddress = validateAndFormatWalletAddress(this.web3, accountAddress)
-    const schema = this._getSchema(asset.schemaName)
+    accountAddress = validateAndFormatWalletAddress(this.web3, accountAddress);
+    const schema = this._getSchema(asset.schemaName);
     const quantityBN = WyvernProtocol.toBaseUnitAmount(
       makeBigNumber(quantity),
       asset.decimals || 0
-    )
-    const wyAsset = getWyvernAsset(schema, asset, quantityBN)
+    );
+    const wyAsset = getWyvernAsset(schema, asset, quantityBN);
 
     // const openSeaAsset: OpenSeaAsset = await this.api.getAsset(asset);
     // @ts-ignore
-    const openSeaAsset = assetFromJSON(createFakeAsset(asset))
+    const openSeaAsset = assetFromJSON(createFakeAsset(asset));
 
-    const taker = sellOrder ? sellOrder.maker : NULL_ADDRESS
+    const taker = sellOrder ? sellOrder.maker : NULL_ADDRESS;
 
     const { totalBuyerFeeBasisPoints, totalSellerFeeBasisPoints } =
       await this.computeFees({
         asset: openSeaAsset,
         extraBountyBasisPoints,
         side: OrderSide.Buy,
-      })
+      });
 
     const {
       makerRelayerFee,
@@ -2672,27 +2690,27 @@ export class OpenSeaPort {
       totalBuyerFeeBasisPoints,
       totalSellerFeeBasisPoints,
       sellOrder
-    )
+    );
 
     const { target, calldata, replacementPattern } = encodeBuy(
       schema,
       wyAsset,
       accountAddress
-    )
+    );
 
     const { basePrice, extra, paymentToken } = await this._getPriceParameters(
       OrderSide.Buy,
       paymentTokenAddress,
       expirationTime,
       startAmount
-    )
-    const times = this._getTimeParameters(expirationTime)
+    );
+    const times = this._getTimeParameters(expirationTime);
 
     const { staticTarget, staticExtradata } =
       await this._getStaticCallTargetAndExtraData({
         asset: openSeaAsset,
         useTxnOriginStaticCall: false,
-      })
+      });
 
     return {
       exchange: WyvernProtocol.getExchangeContractAddress(this._networkName),
@@ -2726,7 +2744,7 @@ export class OpenSeaPort {
         schema: schema.name as WyvernSchemaName,
         referrerAddress,
       },
-    }
+    };
   }
 
   public async _makeSellOrder({
@@ -2756,18 +2774,18 @@ export class OpenSeaPort {
     extraBountyBasisPoints: number;
     buyerAddress: string;
   }): Promise<UnhashedOrder> {
-    accountAddress = validateAndFormatWalletAddress(this.web3, accountAddress)
-    const schema = this._getSchema(asset.schemaName)
+    accountAddress = validateAndFormatWalletAddress(this.web3, accountAddress);
+    const schema = this._getSchema(asset.schemaName);
     const quantityBN = WyvernProtocol.toBaseUnitAmount(
       makeBigNumber(quantity),
       asset.decimals || 0
-    )
-    const wyAsset = getWyvernAsset(schema, asset, quantityBN)
-    const isPrivate = buyerAddress != NULL_ADDRESS
+    );
+    const wyAsset = getWyvernAsset(schema, asset, quantityBN);
+    const isPrivate = buyerAddress != NULL_ADDRESS;
 
     // const openSeaAsset = await this.api.getAsset(asset);
     // @ts-ignore
-    const openSeaAsset = assetFromJSON(createFakeAsset(asset))
+    const openSeaAsset = assetFromJSON(createFakeAsset(asset));
 
     const {
       totalSellerFeeBasisPoints,
@@ -2778,18 +2796,18 @@ export class OpenSeaPort {
       side: OrderSide.Sell,
       isPrivate,
       extraBountyBasisPoints,
-    })
+    });
 
     const { target, calldata, replacementPattern } = encodeSell(
       schema,
       wyAsset,
       accountAddress
-    )
+    );
 
     const orderSaleKind =
       endAmount != null && endAmount !== startAmount
         ? SaleKind.DutchAuction
-        : SaleKind.FixedPrice
+        : SaleKind.FixedPrice;
 
     const { basePrice, extra, paymentToken, reservePrice } =
       await this._getPriceParameters(
@@ -2800,12 +2818,12 @@ export class OpenSeaPort {
         endAmount,
         waitForHighestBid,
         englishAuctionReservePrice
-      )
+      );
     const times = this._getTimeParameters(
       expirationTime,
       listingTime,
       waitForHighestBid
-    )
+    );
 
     const {
       makerRelayerFee,
@@ -2820,13 +2838,13 @@ export class OpenSeaPort {
       totalSellerFeeBasisPoints,
       waitForHighestBid,
       sellerBountyBasisPoints
-    )
+    );
 
     const { staticTarget, staticExtradata } =
       await this._getStaticCallTargetAndExtraData({
         asset: openSeaAsset,
         useTxnOriginStaticCall: waitForHighestBid,
-      })
+      });
 
     return {
       exchange: WyvernProtocol.getExchangeContractAddress(this._networkName),
@@ -2862,7 +2880,7 @@ export class OpenSeaPort {
         asset: wyAsset,
         schema: schema.name as WyvernSchemaName,
       },
-    }
+    };
   }
 
   public async _getStaticCallTargetAndExtraData({
@@ -2878,37 +2896,37 @@ export class OpenSeaPort {
     const isCheezeWizards = [
       CHEEZE_WIZARDS_GUILD_ADDRESS.toLowerCase(),
       CHEEZE_WIZARDS_GUILD_RINKEBY_ADDRESS.toLowerCase(),
-    ].includes(asset.tokenAddress.toLowerCase())
+    ].includes(asset.tokenAddress.toLowerCase());
     const isDecentralandEstate =
       asset.tokenAddress.toLowerCase() ==
-      DECENTRALAND_ESTATE_ADDRESS.toLowerCase()
-    const isMainnet = this._networkName == Network.Main
+      DECENTRALAND_ESTATE_ADDRESS.toLowerCase();
+    const isMainnet = this._networkName == Network.Main;
 
     if (isMainnet && !useTxnOriginStaticCall) {
       // While testing, we will use dummy values for mainnet. We will remove this if-statement once we have pushed the PR once and tested on Rinkeby
       return {
         staticTarget: NULL_ADDRESS,
         staticExtradata: "0x",
-      }
+      };
     }
 
     if (isCheezeWizards) {
       const cheezeWizardsBasicTournamentAddress = isMainnet
         ? CHEEZE_WIZARDS_BASIC_TOURNAMENT_ADDRESS
-        : CHEEZE_WIZARDS_BASIC_TOURNAMENT_RINKEBY_ADDRESS
+        : CHEEZE_WIZARDS_BASIC_TOURNAMENT_RINKEBY_ADDRESS;
       const cheezeWizardsBasicTournamentABI = this.web3.eth.contract(
         CheezeWizardsBasicTournament as any[]
-      )
+      );
       const cheezeWizardsBasicTournmentInstance =
         await cheezeWizardsBasicTournamentABI.at(
           cheezeWizardsBasicTournamentAddress
-        )
+        );
       const wizardFingerprint = await rawCall(this.web3, {
         to: cheezeWizardsBasicTournmentInstance.address,
         data: cheezeWizardsBasicTournmentInstance.wizardFingerprint.getData(
           asset.tokenId
         ),
-      })
+      });
       return {
         staticTarget: isMainnet
           ? STATIC_CALL_CHEEZE_WIZARDS_ADDRESS
@@ -2920,21 +2938,21 @@ export class OpenSeaPort {
           ),
           [asset.tokenId, wizardFingerprint, useTxnOriginStaticCall]
         ),
-      }
+      };
     } else if (isDecentralandEstate && isMainnet) {
       // We stated that we will only use Decentraland estates static
       // calls on mainnet, since Decentraland uses Ropsten
-      const decentralandEstateAddress = DECENTRALAND_ESTATE_ADDRESS
+      const decentralandEstateAddress = DECENTRALAND_ESTATE_ADDRESS;
       const decentralandEstateABI = this.web3.eth.contract(
         DecentralandEstates as any[]
-      )
+      );
       const decentralandEstateInstance = await decentralandEstateABI.at(
         decentralandEstateAddress
-      )
+      );
       const estateFingerprint = await rawCall(this.web3, {
         to: decentralandEstateInstance.address,
         data: decentralandEstateInstance.getFingerprint.getData(asset.tokenId),
-      })
+      });
       return {
         staticTarget: STATIC_CALL_DECENTRALAND_ESTATES_ADDRESS,
         staticExtradata: encodeCall(
@@ -2944,7 +2962,7 @@ export class OpenSeaPort {
           ),
           [asset.tokenId, estateFingerprint, useTxnOriginStaticCall]
         ),
-      }
+      };
     } else if (useTxnOriginStaticCall) {
       return {
         staticTarget: isMainnet
@@ -2957,13 +2975,13 @@ export class OpenSeaPort {
           ),
           []
         ),
-      }
+      };
     } else {
       // Noop - no checks
       return {
         staticTarget: NULL_ADDRESS,
         staticExtradata: "0x",
-      }
+      };
     }
   }
 
@@ -2990,30 +3008,30 @@ export class OpenSeaPort {
     sellOrder?: UnhashedOrder;
     referrerAddress?: string;
   }): Promise<UnhashedOrder> {
-    accountAddress = validateAndFormatWalletAddress(this.web3, accountAddress)
+    accountAddress = validateAndFormatWalletAddress(this.web3, accountAddress);
     const quantityBNs = quantities.map((quantity, i) =>
       WyvernProtocol.toBaseUnitAmount(
         makeBigNumber(quantity),
         assets[i].decimals || 0
       )
-    )
+    );
     const bundle = getWyvernBundle(
       assets,
-      assets.map(a => this._getSchema(a.schemaName)),
+      assets.map((a) => this._getSchema(a.schemaName)),
       quantityBNs
-    )
-    const orderedSchemas = bundle.schemas.map(name => this._getSchema(name))
+    );
+    const orderedSchemas = bundle.schemas.map((name) => this._getSchema(name));
 
-    const taker = sellOrder ? sellOrder.maker : NULL_ADDRESS
+    const taker = sellOrder ? sellOrder.maker : NULL_ADDRESS;
 
     // If all assets are for the same collection, use its fees
-    const asset = collection ? await this.api.getAsset(assets[0]) : undefined
+    const asset = collection ? await this.api.getAsset(assets[0]) : undefined;
     const { totalBuyerFeeBasisPoints, totalSellerFeeBasisPoints } =
       await this.computeFees({
         asset,
         extraBountyBasisPoints,
         side: OrderSide.Buy,
-      })
+      });
 
     const {
       makerRelayerFee,
@@ -3027,7 +3045,7 @@ export class OpenSeaPort {
       totalBuyerFeeBasisPoints,
       totalSellerFeeBasisPoints,
       sellOrder
-    )
+    );
 
     const { calldata, replacementPattern } = encodeAtomicizedBuy(
       orderedSchemas,
@@ -3035,15 +3053,15 @@ export class OpenSeaPort {
       accountAddress,
       this._wyvernProtocol,
       this._networkName
-    )
+    );
 
     const { basePrice, extra, paymentToken } = await this._getPriceParameters(
       OrderSide.Buy,
       paymentTokenAddress,
       expirationTime,
       startAmount
-    )
-    const times = this._getTimeParameters(expirationTime)
+    );
+    const times = this._getTimeParameters(expirationTime);
 
     return {
       exchange: WyvernProtocol.getExchangeContractAddress(this._networkName),
@@ -3076,7 +3094,7 @@ export class OpenSeaPort {
         bundle,
         referrerAddress,
       },
-    }
+    };
   }
 
   public async _makeBundleSellOrder({
@@ -3114,27 +3132,27 @@ export class OpenSeaPort {
     extraBountyBasisPoints: number;
     buyerAddress: string;
   }): Promise<UnhashedOrder> {
-    accountAddress = validateAndFormatWalletAddress(this.web3, accountAddress)
+    accountAddress = validateAndFormatWalletAddress(this.web3, accountAddress);
     const quantityBNs = quantities.map((quantity, i) =>
       WyvernProtocol.toBaseUnitAmount(
         makeBigNumber(quantity),
         assets[i].decimals || 0
       )
-    )
+    );
     const bundle = getWyvernBundle(
       assets,
-      assets.map(a => this._getSchema(a.schemaName)),
+      assets.map((a) => this._getSchema(a.schemaName)),
       quantityBNs
-    )
-    const orderedSchemas = bundle.schemas.map(name => this._getSchema(name))
-    bundle.name = bundleName
-    bundle.description = bundleDescription
-    bundle.external_link = bundleExternalLink
+    );
+    const orderedSchemas = bundle.schemas.map((name) => this._getSchema(name));
+    bundle.name = bundleName;
+    bundle.description = bundleDescription;
+    bundle.external_link = bundleExternalLink;
 
-    const isPrivate = buyerAddress != NULL_ADDRESS
+    const isPrivate = buyerAddress != NULL_ADDRESS;
 
     // If all assets are for the same collection, use its fees
-    const asset = collection ? await this.api.getAsset(assets[0]) : undefined
+    const asset = collection ? await this.api.getAsset(assets[0]) : undefined;
     const {
       totalSellerFeeBasisPoints,
       totalBuyerFeeBasisPoints,
@@ -3144,7 +3162,7 @@ export class OpenSeaPort {
       side: OrderSide.Sell,
       isPrivate,
       extraBountyBasisPoints,
-    })
+    });
 
     const { calldata, replacementPattern } = encodeAtomicizedSell(
       orderedSchemas,
@@ -3152,7 +3170,7 @@ export class OpenSeaPort {
       accountAddress,
       this._wyvernProtocol,
       this._networkName
-    )
+    );
 
     const { basePrice, extra, paymentToken, reservePrice } =
       await this._getPriceParameters(
@@ -3163,17 +3181,17 @@ export class OpenSeaPort {
         endAmount,
         waitForHighestBid,
         englishAuctionReservePrice
-      )
+      );
     const times = this._getTimeParameters(
       expirationTime,
       listingTime,
       waitForHighestBid
-    )
+    );
 
     const orderSaleKind =
       endAmount != null && endAmount !== startAmount
         ? SaleKind.DutchAuction
-        : SaleKind.FixedPrice
+        : SaleKind.FixedPrice;
 
     const {
       makerRelayerFee,
@@ -3187,7 +3205,7 @@ export class OpenSeaPort {
       totalSellerFeeBasisPoints,
       waitForHighestBid,
       sellerBountyBasisPoints
-    )
+    );
 
     return {
       exchange: WyvernProtocol.getExchangeContractAddress(this._networkName),
@@ -3222,7 +3240,7 @@ export class OpenSeaPort {
       metadata: {
         bundle,
       },
-    }
+    };
   }
 
   public _makeMatchingOrder({
@@ -3234,29 +3252,29 @@ export class OpenSeaPort {
     accountAddress: string;
     recipientAddress: string;
   }): UnsignedOrder {
-    accountAddress = validateAndFormatWalletAddress(this.web3, accountAddress)
+    accountAddress = validateAndFormatWalletAddress(this.web3, accountAddress);
     recipientAddress = validateAndFormatWalletAddress(
       this.web3,
       recipientAddress
-    )
+    );
 
     const computeOrderParams = () => {
       if ("asset" in order.metadata) {
-        const schema = this._getSchema(order.metadata.schema)
+        const schema = this._getSchema(order.metadata.schema);
         return order.side == OrderSide.Buy
           ? encodeSell(schema, order.metadata.asset, recipientAddress)
-          : encodeBuy(schema, order.metadata.asset, recipientAddress)
+          : encodeBuy(schema, order.metadata.asset, recipientAddress);
       } else if ("bundle" in order.metadata) {
         // We're matching a bundle order
-        const bundle = order.metadata.bundle
+        const bundle = order.metadata.bundle;
         const orderedSchemas = bundle.schemas
-          ? bundle.schemas.map(schemaName => this._getSchema(schemaName))
+          ? bundle.schemas.map((schemaName) => this._getSchema(schemaName))
           : // Backwards compat:
             bundle.assets.map(() =>
               this._getSchema(
                 "schema" in order.metadata ? order.metadata.schema : undefined
               )
-            )
+            );
         const atomicized =
           order.side == OrderSide.Buy
             ? encodeAtomicizedSell(
@@ -3272,24 +3290,24 @@ export class OpenSeaPort {
                 recipientAddress,
                 this._wyvernProtocol,
                 this._networkName
-              )
+              );
         return {
           target: WyvernProtocol.getAtomicizerContractAddress(
             this._networkName
           ),
           calldata: atomicized.calldata,
           replacementPattern: atomicized.replacementPattern,
-        }
+        };
       } else {
-        throw new Error("Invalid order metadata")
+        throw new Error("Invalid order metadata");
       }
-    }
+    };
 
-    const { target, calldata, replacementPattern } = computeOrderParams()
-    const times = this._getTimeParameters(0)
+    const { target, calldata, replacementPattern } = computeOrderParams();
+    const times = this._getTimeParameters(0);
     // Compat for matching buy orders that have fee recipient still on them
     const feeRecipient =
-      order.feeRecipient == NULL_ADDRESS ? OPENSEA_FEE_RECIPIENT : NULL_ADDRESS
+      order.feeRecipient == NULL_ADDRESS ? OPENSEA_FEE_RECIPIENT : NULL_ADDRESS;
 
     const matchingOrder: UnhashedOrder = {
       exchange: order.exchange,
@@ -3319,12 +3337,12 @@ export class OpenSeaPort {
       expirationTime: times.expirationTime,
       salt: WyvernProtocol.generatePseudoRandomSalt(),
       metadata: order.metadata,
-    }
+    };
 
     return {
       ...matchingOrder,
       hash: getOrderHash(matchingOrder),
-    }
+    };
   }
 
   /**
@@ -3355,51 +3373,51 @@ export class OpenSeaPort {
   ): Promise<boolean> {
     try {
       if (shouldValidateBuy) {
-        const buyValid = await this._validateOrder(buy)
-        this.logger(`Buy order is valid: ${buyValid}`)
+        const buyValid = await this._validateOrder(buy);
+        this.logger(`Buy order is valid: ${buyValid}`);
 
         if (!buyValid) {
           throw new Error(
             "Invalid buy order. It may have recently been removed. Please refresh the page and try again!"
-          )
+          );
         }
       }
 
       if (shouldValidateSell) {
-        const sellValid = await this._validateOrder(sell)
-        this.logger(`Sell order is valid: ${sellValid}`)
+        const sellValid = await this._validateOrder(sell);
+        this.logger(`Sell order is valid: ${sellValid}`);
 
         if (!sellValid) {
           throw new Error(
             "Invalid sell order. It may have recently been removed. Please refresh the page and try again!"
-          )
+          );
         }
       }
 
       const canMatch = await requireOrdersCanMatch(
         this._getClientsForRead(retries).wyvernProtocol,
         { buy, sell, accountAddress }
-      )
-      this.logger(`Orders matching: ${canMatch}`)
+      );
+      this.logger(`Orders matching: ${canMatch}`);
 
       const calldataCanMatch = await requireOrderCalldataCanMatch(
         this._getClientsForRead(retries).wyvernProtocol,
         { buy, sell }
-      )
-      this.logger(`Order calldata matching: ${calldataCanMatch}`)
+      );
+      this.logger(`Order calldata matching: ${calldataCanMatch}`);
 
-      return true
+      return true;
     } catch (error) {
       if (retries <= 0) {
         throw new Error(
           `Error matching this listing: ${error.message}. Please contact the maker or try again later!`
-        )
+        );
       }
-      await delay(500)
+      await delay(500);
       return await this._validateMatch(
         { buy, sell, accountAddress, shouldValidateBuy, shouldValidateSell },
         retries - 1
-      )
+      );
     }
   }
 
@@ -3411,11 +3429,11 @@ export class OpenSeaPort {
     order: UnhashedOrder;
     buyerEmail: string;
   }) {
-    const asset = "asset" in order.metadata ? order.metadata.asset : undefined
+    const asset = "asset" in order.metadata ? order.metadata.asset : undefined;
     if (!asset || !asset.id) {
-      throw new Error("Whitelisting only available for non-fungible assets.")
+      throw new Error("Whitelisting only available for non-fungible assets.");
     }
-    await this.api.postAssetWhitelist(asset.address, asset.id, buyerEmail)
+    await this.api.postAssetWhitelist(asset.address, asset.id, buyerEmail);
   }
 
   // Throws
@@ -3431,27 +3449,27 @@ export class OpenSeaPort {
         ? order.metadata.bundle.assets
         : order.metadata.asset
         ? [order.metadata.asset]
-        : []
+        : [];
     const schemaNames =
       "bundle" in order.metadata && "schemas" in order.metadata.bundle
         ? order.metadata.bundle.schemas
         : "schema" in order.metadata
         ? [order.metadata.schema]
-        : []
-    const tokenAddress = order.paymentToken
+        : [];
+    const tokenAddress = order.paymentToken;
 
-    await this._approveAll({ schemaNames, wyAssets, accountAddress })
+    await this._approveAll({ schemaNames, wyAssets, accountAddress });
 
     // For fulfilling bids,
     // need to approve access to fungible token because of the way fees are paid
     // This can be done at a higher level to show UI
     if (tokenAddress != NULL_ADDRESS) {
-      const minimumAmount = makeBigNumber(order.basePrice)
+      const minimumAmount = makeBigNumber(order.basePrice);
       await this.approveFungibleToken({
         accountAddress,
         tokenAddress,
         minimumAmount,
-      })
+      });
     }
 
     // Check sell parameters
@@ -3485,13 +3503,13 @@ export class OpenSeaPort {
         order.replacementPattern,
         order.staticExtradata,
         { from: accountAddress }
-      )
+      );
 
     if (!sellValid) {
-      console.error(order)
+      console.error(order);
       throw new Error(
         `Failed to validate sell order parameters. Make sure you're on the right network!`
-      )
+      );
     }
   }
 
@@ -3502,11 +3520,11 @@ export class OpenSeaPort {
    * @returns Transaction hash of the approval transaction
    */
   public async _approveOrder(order: UnsignedOrder) {
-    const accountAddress = order.maker
-    const gasPrice = await this._computeGasPrice()
-    const includeInOrderBook = true
+    const accountAddress = order.maker;
+    const gasPrice = await this._computeGasPrice();
+    const includeInOrderBook = true;
 
-    this._dispatch(EventType.ApproveOrder, { order, accountAddress })
+    this._dispatch(EventType.ApproveOrder, { order, accountAddress });
 
     const transactionHash =
       await this._wyvernProtocol.wyvernExchange.approveOrder_.sendTransactionAsync(
@@ -3539,19 +3557,19 @@ export class OpenSeaPort {
         order.staticExtradata,
         includeInOrderBook,
         { from: accountAddress, gasPrice }
-      )
+      );
 
     await this._confirmTransaction(
       transactionHash.toString(),
       EventType.ApproveOrder,
       "Approving order",
       async () => {
-        const isApproved = await this._validateOrder(order)
-        return isApproved
+        const isApproved = await this._validateOrder(order);
+        return isApproved;
       }
-    )
+    );
 
-    return transactionHash
+    return transactionHash;
   }
 
   public async _validateOrder(order: Order): Promise<boolean> {
@@ -3587,9 +3605,9 @@ export class OpenSeaPort {
         order.v || 0,
         order.r || NULL_BLOCK_HASH,
         order.s || NULL_BLOCK_HASH
-      )
+      );
 
-    return isValid
+    return isValid;
   }
 
   public async _approveAll({
@@ -3604,41 +3622,41 @@ export class OpenSeaPort {
     proxyAddress?: string;
   }) {
     proxyAddress =
-      proxyAddress || (await this._getProxy(accountAddress)) || undefined
+      proxyAddress || (await this._getProxy(accountAddress)) || undefined;
 
     if (!proxyAddress) {
-      proxyAddress = await this._initializeProxy(accountAddress)
+      proxyAddress = await this._initializeProxy(accountAddress);
     }
-    const contractsWithApproveAll: Set<string> = new Set()
+    const contractsWithApproveAll: Set<string> = new Set();
 
     return Promise.all(
       wyAssets.map(async (wyAsset, i) => {
-        const schemaName = schemaNames[i]
+        const schemaName = schemaNames[i];
         // Verify that the taker owns the asset
-        let isOwner
+        let isOwner;
         try {
           isOwner = await this._ownsAssetOnChain({
             accountAddress,
             proxyAddress,
             wyAsset,
             schemaName,
-          })
+          });
         } catch (error) {
           // let it through for assets we don't support yet
-          isOwner = true
+          isOwner = true;
         }
 
         if (!isOwner) {
-          const minAmount = "quantity" in wyAsset ? wyAsset.quantity : 1
+          const minAmount = "quantity" in wyAsset ? wyAsset.quantity : 1;
           console.error(
             `Failed on-chain ownership check: ${accountAddress} on ${schemaName}:`,
             wyAsset
-          )
+          );
           throw new Error(
             `You don't own enough to do that (${minAmount} base units of ${
               wyAsset.address
             }${wyAsset.id ? " token " + wyAsset.id : ""})`
-          )
+          );
         }
         switch (schemaName) {
           case WyvernSchemaName.ERC721:
@@ -3646,7 +3664,7 @@ export class OpenSeaPort {
           case WyvernSchemaName.LegacyEnjin:
           case WyvernSchemaName.ENSShortNameAuction:
             // Handle NFTs and SFTs
-            const wyNFTAsset = wyAsset as WyvernNFTAsset
+            const wyNFTAsset = wyAsset as WyvernNFTAsset;
             return await this.approveSemiOrNonFungibleToken({
               tokenId: wyNFTAsset.id.toString(),
               tokenAddress: wyNFTAsset.address,
@@ -3654,20 +3672,20 @@ export class OpenSeaPort {
               proxyAddress,
               schemaName,
               skipApproveAllIfTokenAddressIn: contractsWithApproveAll,
-            })
+            });
           case WyvernSchemaName.ERC20:
             // Handle FTs
-            const wyFTAsset = wyAsset as WyvernFTAsset
+            const wyFTAsset = wyAsset as WyvernFTAsset;
             if (contractsWithApproveAll.has(wyFTAsset.address)) {
               // Return null to indicate no tx occurred
-              return null
+              return null;
             }
-            contractsWithApproveAll.add(wyFTAsset.address)
+            contractsWithApproveAll.add(wyFTAsset.address);
             return await this.approveFungibleToken({
               tokenAddress: wyFTAsset.address,
               accountAddress,
               proxyAddress,
-            })
+            });
           // For other assets, including contracts:
           // Send them to the user's proxy
           // if (where != WyvernAssetLocation.Proxy) {
@@ -3682,7 +3700,7 @@ export class OpenSeaPort {
           // return true
         }
       })
-    )
+    );
   }
 
   // Throws
@@ -3695,20 +3713,20 @@ export class OpenSeaPort {
     counterOrder?: Order;
     accountAddress: string;
   }) {
-    const tokenAddress = order.paymentToken
+    const tokenAddress = order.paymentToken;
 
     if (tokenAddress != NULL_ADDRESS) {
       const balance = await this.getTokenBalance({
         accountAddress,
         tokenAddress,
-      })
+      });
 
       /* NOTE: no buy-side auctions for now, so sell.saleKind === 0 */
-      let minimumAmount = makeBigNumber(order.basePrice)
+      let minimumAmount = makeBigNumber(order.basePrice);
       if (counterOrder) {
         minimumAmount = await this._getRequiredAmountForTakingSellOrder(
           counterOrder
-        )
+        );
       }
 
       // Check WETH balance
@@ -3730,7 +3748,7 @@ export class OpenSeaPort {
         accountAddress,
         tokenAddress,
         minimumAmount,
-      })
+      });
     }
 
     // Check order formation
@@ -3764,12 +3782,12 @@ export class OpenSeaPort {
         order.replacementPattern,
         order.staticExtradata,
         { from: accountAddress }
-      )
+      );
     if (!buyValid) {
-      console.error(order)
+      console.error(order);
       throw new Error(
         `Failed to validate buy order parameters. Make sure you're on the right network!`
-      )
+      );
     }
   }
 
@@ -3795,32 +3813,32 @@ export class OpenSeaPort {
       tokenId: wyAsset.id || null,
       tokenAddress: wyAsset.address,
       schemaName,
-    }
+    };
 
     const minAmount = new BigNumber(
       "quantity" in wyAsset ? wyAsset.quantity : 1
-    )
+    );
 
     const accountBalance = await this.getAssetBalance({
       accountAddress,
       asset,
-    })
+    });
     if (accountBalance.greaterThanOrEqualTo(minAmount)) {
-      return true
+      return true;
     }
 
-    proxyAddress = proxyAddress || (await this._getProxy(accountAddress))
+    proxyAddress = proxyAddress || (await this._getProxy(accountAddress));
     if (proxyAddress) {
       const proxyBalance = await this.getAssetBalance({
         accountAddress: proxyAddress,
         asset,
-      })
+      });
       if (proxyBalance.greaterThanOrEqualTo(minAmount)) {
-        return true
+        return true;
       }
     }
 
-    return false
+    return false;
   }
 
   public _getBuyFeeParameters(
@@ -3828,10 +3846,10 @@ export class OpenSeaPort {
     totalSellerFeeBasisPoints: number,
     sellOrder?: UnhashedOrder
   ) {
-    this._validateFees(totalBuyerFeeBasisPoints, totalSellerFeeBasisPoints)
+    this._validateFees(totalBuyerFeeBasisPoints, totalSellerFeeBasisPoints);
 
-    let makerRelayerFee
-    let takerRelayerFee
+    let makerRelayerFee;
+    let takerRelayerFee;
 
     if (sellOrder) {
       // Use the sell order's fees to ensure compatiblity and force the order
@@ -3840,13 +3858,13 @@ export class OpenSeaPort {
       // TODO add extraBountyBasisPoints when making bidder bounties
       makerRelayerFee = sellOrder.waitingForBestCounterOrder
         ? makeBigNumber(sellOrder.makerRelayerFee)
-        : makeBigNumber(sellOrder.takerRelayerFee)
+        : makeBigNumber(sellOrder.takerRelayerFee);
       takerRelayerFee = sellOrder.waitingForBestCounterOrder
         ? makeBigNumber(sellOrder.takerRelayerFee)
-        : makeBigNumber(sellOrder.makerRelayerFee)
+        : makeBigNumber(sellOrder.makerRelayerFee);
     } else {
-      makerRelayerFee = makeBigNumber(totalBuyerFeeBasisPoints)
-      takerRelayerFee = makeBigNumber(totalSellerFeeBasisPoints)
+      makerRelayerFee = makeBigNumber(totalBuyerFeeBasisPoints);
+      takerRelayerFee = makeBigNumber(totalSellerFeeBasisPoints);
     }
 
     return {
@@ -3857,7 +3875,7 @@ export class OpenSeaPort {
       makerReferrerFee: makeBigNumber(0), // TODO use buyerBountyBPS
       feeRecipient: OPENSEA_FEE_RECIPIENT,
       feeMethod: FeeMethod.SplitFee,
-    }
+    };
   }
 
   public _getSellFeeParameters(
@@ -3866,20 +3884,20 @@ export class OpenSeaPort {
     waitForHighestBid: boolean,
     sellerBountyBasisPoints = 0
   ) {
-    this._validateFees(totalBuyerFeeBasisPoints, totalSellerFeeBasisPoints)
+    this._validateFees(totalBuyerFeeBasisPoints, totalSellerFeeBasisPoints);
     // Use buyer as the maker when it's an English auction, so Wyvern sets prices correctly
     const feeRecipient = waitForHighestBid
       ? NULL_ADDRESS
-      : OPENSEA_FEE_RECIPIENT
+      : OPENSEA_FEE_RECIPIENT;
 
     // Swap maker/taker fees when it's an English auction,
     // since these sell orders are takers not makers
     const makerRelayerFee = waitForHighestBid
       ? makeBigNumber(totalBuyerFeeBasisPoints)
-      : makeBigNumber(totalSellerFeeBasisPoints)
+      : makeBigNumber(totalSellerFeeBasisPoints);
     const takerRelayerFee = waitForHighestBid
       ? makeBigNumber(totalSellerFeeBasisPoints)
-      : makeBigNumber(totalBuyerFeeBasisPoints)
+      : makeBigNumber(totalBuyerFeeBasisPoints);
 
     return {
       makerRelayerFee,
@@ -3889,7 +3907,7 @@ export class OpenSeaPort {
       makerReferrerFee: makeBigNumber(sellerBountyBasisPoints),
       feeRecipient,
       feeMethod: FeeMethod.SplitFee,
-    }
+    };
   }
 
   /**
@@ -3901,7 +3919,7 @@ export class OpenSeaPort {
     totalBuyerFeeBasisPoints: number,
     totalSellerFeeBasisPoints: number
   ) {
-    const maxFeePercent = INVERSE_BASIS_POINT / 100
+    const maxFeePercent = INVERSE_BASIS_POINT / 100;
 
     if (
       totalBuyerFeeBasisPoints > INVERSE_BASIS_POINT ||
@@ -3909,11 +3927,11 @@ export class OpenSeaPort {
     ) {
       throw new Error(
         `Invalid buyer/seller fees: must be less than ${maxFeePercent}%`
-      )
+      );
     }
 
     if (totalBuyerFeeBasisPoints < 0 || totalSellerFeeBasisPoints < 0) {
-      throw new Error(`Invalid buyer/seller fees: must be at least 0%`)
+      throw new Error(`Invalid buyer/seller fees: must be at least 0%`);
     }
   }
 
@@ -3931,49 +3949,49 @@ export class OpenSeaPort {
     // Validation
     const minExpirationTimestamp = Math.round(
       Date.now() / 1000 + MIN_EXPIRATION_SECONDS
-    )
-    const minListingTimestamp = Math.round(Date.now() / 1000)
+    );
+    const minListingTimestamp = Math.round(Date.now() / 1000);
     if (
       expirationTimestamp != 0 &&
       expirationTimestamp < minExpirationTimestamp
     ) {
       throw new Error(
         `Expiration time must be at least ${MIN_EXPIRATION_SECONDS} seconds from now, or zero (non-expiring).`
-      )
+      );
     }
     if (listingTimestamp && listingTimestamp < minListingTimestamp) {
-      throw new Error("Listing time cannot be in the past.")
+      throw new Error("Listing time cannot be in the past.");
     }
     if (
       listingTimestamp &&
       expirationTimestamp != 0 &&
       listingTimestamp >= expirationTimestamp
     ) {
-      throw new Error("Listing time must be before the expiration time.")
+      throw new Error("Listing time must be before the expiration time.");
     }
     if (waitingForBestCounterOrder && expirationTimestamp == 0) {
-      throw new Error("English auctions must have an expiration time.")
+      throw new Error("English auctions must have an expiration time.");
     }
     if (waitingForBestCounterOrder && listingTimestamp) {
-      throw new Error(`Cannot schedule an English auction for the future.`)
+      throw new Error(`Cannot schedule an English auction for the future.`);
     }
     if (parseInt(expirationTimestamp.toString()) != expirationTimestamp) {
-      throw new Error(`Expiration timestamp must be a whole number of seconds`)
+      throw new Error(`Expiration timestamp must be a whole number of seconds`);
     }
 
     if (waitingForBestCounterOrder) {
       listingTimestamp =
-        listingTimestamp || Math.round(Date.now() / 1000 - 100)
+        listingTimestamp || Math.round(Date.now() / 1000 - 100);
     } else {
       // Small offset to account for latency
       listingTimestamp =
-        listingTimestamp || Math.round(Date.now() / 1000 - 100)
+        listingTimestamp || Math.round(Date.now() / 1000 - 100);
     }
 
     return {
       listingTime: makeBigNumber(listingTimestamp),
       expirationTime: makeBigNumber(expirationTimestamp),
-    }
+    };
   }
 
   /**
@@ -3994,13 +4012,13 @@ export class OpenSeaPort {
     waitingForBestCounterOrder = false,
     englishAuctionReservePrice?: number
   ) {
-    const priceDiff = endAmount != null ? startAmount - endAmount : 0
-    const paymentToken = tokenAddress.toLowerCase()
-    const isEther = tokenAddress == NULL_ADDRESS
+    const priceDiff = endAmount != null ? startAmount - endAmount : 0;
+    const paymentToken = tokenAddress.toLowerCase();
+    const isEther = tokenAddress == NULL_ADDRESS;
     // const { tokens } = await this.api.getPaymentTokens({
     //   address: paymentToken,
     // });
-    let token
+    let token;
     switch (paymentToken) {
       case "0x0000000000000000000000000000000000000000":
         token = {
@@ -4013,8 +4031,8 @@ export class OpenSeaPort {
           name: "BNB",
           symbol: "BNB",
           usd_price: "300",
-        }
-        break
+        };
+        break;
       case USDT_ADDRESS:
         token = {
           address: USDT_ADDRESS,
@@ -4025,8 +4043,8 @@ export class OpenSeaPort {
           name: "USDT",
           symbol: "USDT",
           usd_price: "1",
-        }
-        break
+        };
+        break;
       case MGT_ADDRESS_TESTNET:
         token = {
           address: USDT_ADDRESS,
@@ -4037,8 +4055,8 @@ export class OpenSeaPort {
           name: "MangaToken",
           symbol: "MGT",
           usd_price: "10",
-        }
-        break
+        };
+        break;
 
       default:
         token = {
@@ -4050,36 +4068,36 @@ export class OpenSeaPort {
           name: "USDT",
           symbol: "USDT",
           usd_price: "1",
-        }
+        };
     }
 
     // Validation
     if (isNaN(startAmount) || startAmount == null || startAmount < 0) {
-      throw new Error(`Starting price must be a number >= 0`)
+      throw new Error(`Starting price must be a number >= 0`);
     }
     if (!isEther && !token) {
-      throw new Error(`No ERC-20 token found for '${paymentToken}'`)
+      throw new Error(`No ERC-20 token found for '${paymentToken}'`);
     }
     if (isEther && waitingForBestCounterOrder) {
       throw new Error(
         `English auctions must use wrapped ETH or an ERC-20 token.`
-      )
+      );
     }
     if (isEther && orderSide === OrderSide.Buy) {
-      throw new Error(`Offers must use wrapped ETH or an ERC-20 token.`)
+      throw new Error(`Offers must use wrapped ETH or an ERC-20 token.`);
     }
     if (priceDiff < 0) {
       throw new Error(
         "End price must be less than or equal to the start price."
-      )
+      );
     }
     if (priceDiff > 0 && expirationTime == 0) {
       throw new Error(
         "Expiration time must be set if order will change in price."
-      )
+      );
     }
     if (englishAuctionReservePrice && !waitingForBestCounterOrder) {
-      throw new Error("Reserve prices may only be set on English auctions.")
+      throw new Error("Reserve prices may only be set on English auctions.");
     }
     if (
       englishAuctionReservePrice &&
@@ -4087,7 +4105,7 @@ export class OpenSeaPort {
     ) {
       throw new Error(
         "Reserve price must be greater than or equal to the start amount."
-      )
+      );
     }
 
     // Note: WyvernProtocol.toBaseUnitAmount(makeBigNumber(startAmount), token.decimals)
@@ -4097,14 +4115,14 @@ export class OpenSeaPort {
       : WyvernProtocol.toBaseUnitAmount(
           makeBigNumber(startAmount),
           token.decimals
-        )
+        );
 
     const extra = isEther
       ? makeBigNumber(this.web3.toWei(priceDiff, "ether")).round()
       : WyvernProtocol.toBaseUnitAmount(
           makeBigNumber(priceDiff),
           token.decimals
-        )
+        );
 
     const reservePrice = englishAuctionReservePrice
       ? isEther
@@ -4115,17 +4133,17 @@ export class OpenSeaPort {
             makeBigNumber(englishAuctionReservePrice),
             token.decimals
           )
-      : undefined
+      : undefined;
 
-    return { basePrice, extra, paymentToken, reservePrice }
+    return { basePrice, extra, paymentToken, reservePrice };
   }
 
   private _getMetadata(order: Order, referrerAddress?: string) {
-    const referrer = referrerAddress || order.metadata.referrerAddress
+    const referrer = referrerAddress || order.metadata.referrerAddress;
     if (referrer && isValidAddress(referrer)) {
-      return referrer
+      return referrer;
     }
-    return undefined
+    return undefined;
   }
 
   private async _atomicMatch({
@@ -4139,29 +4157,29 @@ export class OpenSeaPort {
     accountAddress: string;
     metadata?: string;
   }) {
-    let value
-    let shouldValidateBuy = true
-    let shouldValidateSell = true
+    let value;
+    let shouldValidateBuy = true;
+    let shouldValidateSell = true;
 
     if (sell.maker.toLowerCase() == accountAddress.toLowerCase()) {
       // USER IS THE SELLER, only validate the buy order
       await this._sellOrderValidationAndApprovals({
         order: sell,
         accountAddress,
-      })
-      shouldValidateSell = false
+      });
+      shouldValidateSell = false;
     } else if (buy.maker.toLowerCase() == accountAddress.toLowerCase()) {
       // USER IS THE BUYER, only validate the sell order
       await this._buyOrderValidationAndApprovals({
         order: buy,
         counterOrder: sell,
         accountAddress,
-      })
-      shouldValidateBuy = false
+      });
+      shouldValidateBuy = false;
 
       // If using ETH to pay, set the value of the transaction to the current price
       if (buy.paymentToken == NULL_ADDRESS) {
-        value = await this._getRequiredAmountForTakingSellOrder(sell)
+        value = await this._getRequiredAmountForTakingSellOrder(sell);
       }
     } else {
       // User is neither - matching service
@@ -4173,17 +4191,17 @@ export class OpenSeaPort {
       accountAddress,
       shouldValidateBuy,
       shouldValidateSell,
-    })
+    });
 
     this._dispatch(EventType.MatchOrders, {
       buy,
       sell,
       accountAddress,
       matchMetadata: metadata,
-    })
+    });
 
-    let txHash
-    const txnData: any = { from: accountAddress, value }
+    let txHash;
+    const txnData: any = { from: accountAddress, value };
     const args: WyvernAtomicMatchParameters = [
       [
         buy.exchange,
@@ -4245,9 +4263,9 @@ export class OpenSeaPort {
         sell.s || NULL_BLOCK_HASH,
         metadata,
       ],
-    ]
+    ];
 
-    console.log("estimating gas ...")
+    console.log("estimating gas ...");
     // Estimate gas first
     try {
       // Typescript splat doesn't typecheck
@@ -4265,23 +4283,23 @@ export class OpenSeaPort {
           args[9],
           args[10],
           txnData
-        )
+        );
 
-      txnData.gasPrice = await this._computeGasPrice()
-      txnData.gas = this._correctGasAmount(gasEstimate)
+      txnData.gasPrice = await this._computeGasPrice();
+      txnData.gas = this._correctGasAmount(gasEstimate);
     } catch (error) {
-      console.error(`Failed atomic match with args: `, args, error)
+      console.error(`Failed atomic match with args: `, args, error);
       throw new Error(
         `Oops, the Ethereum network rejected this transaction :( The devs have been alerted, but this problem is typically due an item being locked or untransferrable. The exact error was "${error.message.substr(
           0,
           MAX_ERROR_LENGTH
         )}..."`
-      )
+      );
     }
 
     // Then do the transaction
     try {
-      this.logger(`Fulfilling order with gas set to ${txnData.gas}`)
+      this.logger(`Fulfilling order with gas set to ${txnData.gas}`);
       txHash =
         await this._wyvernProtocol.wyvernExchange.atomicMatch_.sendTransactionAsync(
           args[0],
@@ -4296,9 +4314,9 @@ export class OpenSeaPort {
           args[9],
           args[10],
           txnData
-        )
+        );
     } catch (error) {
-      console.error(error)
+      console.error(error);
 
       this._dispatch(EventType.TransactionDenied, {
         error,
@@ -4306,80 +4324,81 @@ export class OpenSeaPort {
         sell,
         accountAddress,
         matchMetadata: metadata,
-      })
+      });
 
       throw new Error(
         `Failed to authorize transaction: "${
           error.message ? error.message : "user denied"
         }..."`
-      )
+      );
     }
-    return txHash
+    return txHash;
   }
 
   private async _getRequiredAmountForTakingSellOrder(sell: Order) {
-    const currentPrice = await this.getCurrentPrice(sell)
-    const estimatedPrice = estimateCurrentPrice(sell)
+    const currentPrice = await this.getCurrentPrice(sell);
+    const estimatedPrice = estimateCurrentPrice(sell);
 
-    const maxPrice = BigNumber.max(currentPrice, estimatedPrice)
+    const maxPrice = BigNumber.max(currentPrice, estimatedPrice);
 
     // TODO Why is this not always a big number?
-    sell.takerRelayerFee = makeBigNumber(sell.takerRelayerFee)
-    const feePercentage = sell.takerRelayerFee.div(INVERSE_BASIS_POINT)
-    const fee = feePercentage.times(maxPrice)
-    return fee.plus(maxPrice).ceil()
+    sell.takerRelayerFee = makeBigNumber(sell.takerRelayerFee);
+    const feePercentage = sell.takerRelayerFee.div(INVERSE_BASIS_POINT);
+    const fee = feePercentage.times(maxPrice);
+    return fee.plus(maxPrice).ceil();
   }
 
   private async _authorizeOrder(
     order: UnsignedOrder
   ): Promise<ECSignature | null> {
-    const message = order.hash
-    const signerAddress = order.maker
+    const message = order.hash;
+    const signerAddress = order.maker;
 
     this._dispatch(EventType.CreateOrder, {
       order,
       accountAddress: order.maker,
-    })
+    });
 
     const makerIsSmartContract = await isContractAddress(
       this.web3,
       signerAddress
-    )
+    );
 
     try {
       if (makerIsSmartContract) {
         // The web3 provider is probably a smart contract wallet.
         // Fallback to on-chain approval.
-        await this._approveOrder(order)
-        return null
+        await this._approveOrder(order);
+        return null;
       } else {
-        return await personalSignAsync(this.web3, message, signerAddress)
+        return await personalSignAsync(this.web3, message, signerAddress);
       }
     } catch (error) {
       this._dispatch(EventType.OrderDenied, {
         order,
         accountAddress: signerAddress,
-      })
-      throw error
+      });
+      throw error;
     }
   }
 
   private _getSchema(schemaName?: WyvernSchemaName): Schema<any> {
-    const schemaName_ = schemaName || WyvernSchemaName.ERC721
+    const schemaName_ = schemaName || WyvernSchemaName.ERC721;
     // @ts-ignore
-    const schema = WyvernSchemas.schemas[this._networkName].filter(s => s.name == schemaName_
-    )[0]
+    const schema = WyvernSchemas.schemas[this._networkName].filter(
+      (s) => s.name == schemaName_
+    )[0];
 
     if (!schema) {
       throw new Error(
         `Trading for this asset (${schemaName_}) is not yet supported. Please contact us or check back later!`
-      )
+      );
     }
-    return schema
+    return schema;
   }
 
   private _dispatch(event: EventType, data: EventData) {
-    this._emitter.emit(event, data)
+    this._emitter.emit(event, data);
   }
 
   /**
@@ -4395,13 +4414,13 @@ export class OpenSeaPort {
       return {
         web3: this.web3,
         wyvernProtocol: this._wyvernProtocol,
-      }
+      };
     } else {
       // Use provided provider as fallback
       return {
         web3: this.web3ReadOnly,
         wyvernProtocol: this._wyvernProtocolReadOnly,
-      }
+      };
     }
   }
 
@@ -4411,40 +4430,40 @@ export class OpenSeaPort {
     description: string,
     testForSuccess?: () => Promise<boolean>
   ): Promise<void> {
-    const transactionEventData = { transactionHash, event }
-    this.logger(`Transaction started: ${description}`)
+    const transactionEventData = { transactionHash, event };
+    this.logger(`Transaction started: ${description}`);
 
     if (transactionHash == NULL_BLOCK_HASH) {
       // This was a smart contract wallet that doesn't know the transaction
-      this._dispatch(EventType.TransactionCreated, { event })
+      this._dispatch(EventType.TransactionCreated, { event });
 
       if (!testForSuccess) {
         // Wait if test not implemented
-        this.logger(`Unknown action, waiting 1 minute: ${description}`)
-        await delay(60 * 1000)
-        return
+        this.logger(`Unknown action, waiting 1 minute: ${description}`);
+        await delay(60 * 1000);
+        return;
       }
 
       return await this._pollCallbackForConfirmation(
         event,
         description,
         testForSuccess
-      )
+      );
     }
 
     // Normal wallet
     try {
-      this._dispatch(EventType.TransactionCreated, transactionEventData)
-      await confirmTransaction(this.web3, transactionHash)
-      this.logger(`Transaction succeeded: ${description}`)
-      this._dispatch(EventType.TransactionConfirmed, transactionEventData)
+      this._dispatch(EventType.TransactionCreated, transactionEventData);
+      await confirmTransaction(this.web3, transactionHash);
+      this.logger(`Transaction succeeded: ${description}`);
+      this._dispatch(EventType.TransactionConfirmed, transactionEventData);
     } catch (error) {
-      this.logger(`Transaction failed: ${description}`)
+      this.logger(`Transaction failed: ${description}`);
       this._dispatch(EventType.TransactionFailed, {
         ...transactionEventData,
         error,
-      })
-      throw error
+      });
+      throw error;
     }
   }
 
@@ -4454,16 +4473,16 @@ export class OpenSeaPort {
     testForSuccess: () => Promise<boolean>
   ): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
-      const initialRetries = 60
+      const initialRetries = 60;
 
-      const testResolve: (r: number) => Promise<void> = async retries => {
-        const wasSuccessful = await testForSuccess()
+      const testResolve: (r: number) => Promise<void> = async (retries) => {
+        const wasSuccessful = await testForSuccess();
         if (wasSuccessful) {
-          this.logger(`Transaction succeeded: ${description}`)
-          this._dispatch(EventType.TransactionConfirmed, { event })
-          return resolve()
+          this.logger(`Transaction succeeded: ${description}`);
+          this._dispatch(EventType.TransactionConfirmed, { event });
+          return resolve();
         } else if (retries <= 0) {
-          return reject()
+          return reject();
         }
 
         if (retries % 10 == 0) {
@@ -4471,13 +4490,13 @@ export class OpenSeaPort {
             `Tested transaction ${
               initialRetries - retries + 1
             } times: ${description}`
-          )
+          );
         }
-        await delay(5000)
-        return testResolve(retries - 1)
-      }
+        await delay(5000);
+        return testResolve(retries - 1);
+      };
 
-      return testResolve(initialRetries)
-    })
+      return testResolve(initialRetries);
+    });
   }
 }

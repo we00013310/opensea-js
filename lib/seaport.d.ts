@@ -273,7 +273,7 @@ export declare class OpenSeaPort {
         buyerAddress?: string;
         buyerEmail?: string;
         numberOfOrders?: number;
-    }): Promise<number>;
+    }): Promise<any[]>;
     /**
      * Create a sell order to auction a bundle of assets.
      * Will throw a 'You do not own this asset' error if the maker doesn't have one of the assets.
