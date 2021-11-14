@@ -3623,6 +3623,7 @@ export class OpenSeaPort {
   }) {
     proxyAddress =
       proxyAddress || (await this._getProxy(accountAddress)) || undefined;
+    console.log("proxyAddress", proxyAddress);
 
     if (!proxyAddress) {
       proxyAddress = await this._initializeProxy(accountAddress);
