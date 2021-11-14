@@ -185,6 +185,7 @@ export class OpenSeaPort {
     );
     console.log(
       "test",
+      this._networkName,
       this._networkName == Network.Main
         ? MAINNET_PROVIDER_URL
         : Network.Testnet
