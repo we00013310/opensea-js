@@ -1,18 +1,18 @@
-import BigNumber from "bignumber.js"
-import { WyvernProtocol } from "wyvern-js"
-import * as ethUtil from "ethereumjs-util"
-import * as _ from "lodash"
-import * as Web3 from "web3"
+import BigNumber from "bignumber.js";
+import { WyvernProtocol } from "wyvern-js";
+import * as ethUtil from "ethereumjs-util";
+import * as _ from "lodash";
+import * as Web3 from "web3";
 import {
   AnnotatedFunctionABI,
   FunctionInputKind,
   FunctionOutputKind,
   Schema,
   StateMutability,
-} from "wyvern-schemas/dist/types"
-import { ERC1155 } from "../contracts"
+} from "wyvern-schemas/dist/types";
+import { ERC1155 } from "../contracts";
 
-import { OpenSeaPort } from ".."
+import { OpenSeaPort } from "..";
 import {
   Asset,
   AssetContractType,
@@ -40,17 +40,17 @@ import {
   WyvernFTAsset,
   WyvernNFTAsset,
   WyvernSchemaName,
-} from "../types"
+} from "../types";
 import {
   ENJIN_ADDRESS,
   ENJIN_COIN_ADDRESS,
   INVERSE_BASIS_POINT,
   NULL_ADDRESS,
   NULL_BLOCK_HASH,
-} from "../constants"
-import { proxyABI } from "../abi/Proxy"
+} from "../constants";
+import { proxyABI } from "../abi/Proxy";
 
-export { WyvernProtocol }
+export { WyvernProtocol };
 
 export const annotateERC721TransferABI = (
   asset: WyvernNFTAsset
@@ -75,7 +75,7 @@ export const annotateERC721TransferABI = (
   payable: false,
   stateMutability: StateMutability.Nonpayable,
   type: Web3.AbiType.Function,
-})
+});
 
 export const annotateERC20TransferABI = (
   asset: WyvernFTAsset
@@ -106,7 +106,7 @@ export const annotateERC20TransferABI = (
   payable: false,
   stateMutability: StateMutability.Nonpayable,
   type: Web3.AbiType.Function,
-})
+});
 
 const SCHEMA_NAME_TO_ASSET_CONTRACT_TYPE: {
   [key in WyvernSchemaName]: AssetContractType;
@@ -116,11 +116,11 @@ const SCHEMA_NAME_TO_ASSET_CONTRACT_TYPE: {
   [WyvernSchemaName.ERC20]: AssetContractType.Fungible,
   [WyvernSchemaName.LegacyEnjin]: AssetContractType.SemiFungible,
   [WyvernSchemaName.ENSShortNameAuction]: AssetContractType.NonFungible,
-}
+};
 
 // OTHER
 
-const txCallbacks: { [key: string]: TxnCallback[] } = {}
+const txCallbacks: { [key: string]: TxnCallback[] } = {};
 
 /**
  * Promisify a callback-syntax web3 function
@@ -131,11 +131,11 @@ async function promisify<T>(inner: (fn: Web3Callback<T>) => void) {
   return new Promise<T>((resolve, reject) =>
     inner((err, res) => {
       if (err) {
-        reject(err)
+        reject(err);
       }
-      resolve(res)
+      resolve(res);
     })
-  )
+  );
 }
 
 /**
@@ -152,72 +152,72 @@ export async function promisifyCall<T>(
   onError?: (error: Error) => void
 ): Promise<T | undefined> {
   try {
-    const result: any = await promisify<T>(callback)
+    const result: any = await promisify<T>(callback);
     if (result == "0x") {
       // Geth compatibility
-      return undefined
+      return undefined;
     }
-    return result as T
+    return result as T;
   } catch (error) {
     // Probably method not found, and web3 is a Parity node
     if (onError) {
-      onError(error)
+      onError(error);
     } else {
-      console.error(error)
+      console.error(error);
     }
-    return undefined
+    return undefined;
   }
 }
 
 const track = (web3: Web3, txHash: string, onFinalized: TxnCallback) => {
   if (txCallbacks[txHash]) {
-    txCallbacks[txHash].push(onFinalized)
+    txCallbacks[txHash].push(onFinalized);
   } else {
-    txCallbacks[txHash] = [onFinalized]
+    txCallbacks[txHash] = [onFinalized];
     const poll = async () => {
-      const tx = await promisify<Web3.Transaction>(c =>
+      const tx = await promisify<Web3.Transaction>((c) =>
         web3.eth.getTransaction(txHash, c)
-      )
+      );
       if (tx && tx.blockHash && tx.blockHash !== NULL_BLOCK_HASH) {
-        const receipt = await promisify<Web3.TransactionReceipt | null>(c =>
+        const receipt = await promisify<Web3.TransactionReceipt | null>((c) =>
           web3.eth.getTransactionReceipt(txHash, c)
-        )
+        );
         if (!receipt) {
           // Hack: assume success if no receipt
-          console.warn("No receipt found for ", txHash)
+          console.warn("No receipt found for ", txHash);
         }
         const status = receipt
           ? parseInt((receipt.status || "0").toString()) == 1
-          : true
-        txCallbacks[txHash].map(f => f(status))
-        delete txCallbacks[txHash]
+          : true;
+        txCallbacks[txHash].map((f) => f(status));
+        delete txCallbacks[txHash];
       } else {
-        setTimeout(poll, 1000)
+        setTimeout(poll, 1000);
       }
-    }
-    poll().catch()
+    };
+    poll().catch();
   }
-}
+};
 
 export const confirmTransaction = async (web3: Web3, txHash: string) => {
   return new Promise((resolve, reject) => {
     track(web3, txHash, (didSucceed: boolean) => {
       if (didSucceed) {
-        resolve("Transaction complete!")
+        resolve("Transaction complete!");
       } else {
         reject(
           new Error(
             `Transaction failed :( You might have already completed this action. See more on the mainnet at etherscan.io/tx/${txHash}`
           )
-        )
+        );
       }
-    })
-  })
-}
+    });
+  });
+};
 
 export const assetFromJSON = (asset: any): OpenSeaAsset => {
-  const isAnimated = asset.image_url && asset.image_url.endsWith(".gif")
-  const isSvg = asset.image_url && asset.image_url.endsWith(".svg")
+  const isAnimated = asset.image_url && asset.image_url.endsWith(".gif");
+  const isSvg = asset.image_url && asset.image_url.endsWith(".svg");
   const fromJSON: OpenSeaAsset = {
     tokenId: asset.token_id.toString(),
     tokenAddress: asset.asset_contract.address,
@@ -253,17 +253,18 @@ export const assetFromJSON = (asset: any): OpenSeaAsset => {
     transferFeePaymentToken: asset.transfer_fee_payment_token
       ? tokenFromJSON(asset.transfer_fee_payment_token)
       : null,
-  }
+  };
   // If orders were included, put them in sell/buy order groups
   if (fromJSON.orders && !fromJSON.sellOrders) {
-    fromJSON.sellOrders = fromJSON.orders.filter(o => o.side == OrderSide.Sell
-    )
+    fromJSON.sellOrders = fromJSON.orders.filter(
+      (o) => o.side == OrderSide.Sell
+    );
   }
   if (fromJSON.orders && !fromJSON.buyOrders) {
-    fromJSON.buyOrders = fromJSON.orders.filter(o => o.side == OrderSide.Buy)
+    fromJSON.buyOrders = fromJSON.orders.filter((o) => o.side == OrderSide.Buy);
   }
-  return fromJSON
-}
+  return fromJSON;
+};
 
 export const assetEventFromJSON = (assetEvent: any): AssetEvent => {
   return {
@@ -277,8 +278,8 @@ export const assetEventFromJSON = (assetEvent: any): AssetEvent => {
     paymentToken: assetEvent.payment_token
       ? tokenFromJSON(assetEvent.payment_token)
       : null,
-  }
-}
+  };
+};
 
 export const transactionFromJSON = (transaction: any): Transaction => {
   return {
@@ -291,8 +292,8 @@ export const transactionFromJSON = (transaction: any): Transaction => {
     blockNumber: transaction.block_number,
     blockHash: transaction.block_hash,
     timestamp: new Date(`${transaction.timestamp}Z`),
-  }
-}
+  };
+};
 
 export const accountFromJSON = (account: any): OpenSeaAccount => {
   return {
@@ -300,14 +301,14 @@ export const accountFromJSON = (account: any): OpenSeaAccount => {
     config: account.config,
     profileImgUrl: account.profile_img_url,
     user: account.user ? userFromJSON(account.user) : null,
-  }
-}
+  };
+};
 
 export const userFromJSON = (user: any): OpenSeaUser => {
   return {
     username: user.username,
-  }
-}
+  };
+};
 
 export const assetBundleFromJSON = (asset_bundle: any): OpenSeaAssetBundle => {
   const fromJSON: OpenSeaAssetBundle = {
@@ -325,10 +326,10 @@ export const assetBundleFromJSON = (asset_bundle: any): OpenSeaAssetBundle => {
     sellOrders: asset_bundle.sell_orders
       ? asset_bundle.sell_orders.map(orderFromJSON)
       : null,
-  }
+  };
 
-  return fromJSON
-}
+  return fromJSON;
+};
 
 export const assetContractFromJSON = (
   asset_contract: any
@@ -350,11 +351,11 @@ export const assetContractFromJSON = (
     imageUrl: asset_contract.image_url,
     externalLink: asset_contract.external_link,
     wikiLink: asset_contract.wiki_link,
-  }
-}
+  };
+};
 
 export const collectionFromJSON = (collection: any): OpenSeaCollection => {
-  const createdDate = new Date(`${collection.created_date}Z`)
+  const createdDate = new Date(`${collection.created_date}Z`);
 
   return {
     createdDate,
@@ -378,8 +379,8 @@ export const collectionFromJSON = (collection: any): OpenSeaCollection => {
     traitStats: collection.traits as OpenSeaTraitStats,
     externalLink: collection.external_url,
     wikiLink: collection.wiki_url,
-  }
-}
+  };
+};
 
 export const tokenFromJSON = (token: any): OpenSeaFungibleToken => {
   const fromJSON: OpenSeaFungibleToken = {
@@ -390,13 +391,13 @@ export const tokenFromJSON = (token: any): OpenSeaFungibleToken => {
     imageUrl: token.image_url,
     ethPrice: token.eth_price,
     usdPrice: token.usd_price,
-  }
+  };
 
-  return fromJSON
-}
+  return fromJSON;
+};
 
 export const orderFromJSON = (order: any): Order => {
-  const createdDate = new Date(`${order.created_date}Z`)
+  const createdDate = new Date(`${order.created_date}Z`);
 
   const fromJSON: Order = {
     hash: order.order_hash || order.hash,
@@ -449,13 +450,13 @@ export const orderFromJSON = (order: any): Order => {
     assetBundle: order.asset_bundle
       ? assetBundleFromJSON(order.asset_bundle)
       : undefined,
-  }
+  };
 
   // Use client-side price calc, to account for buyer fee (not added by server) and latency
-  fromJSON.currentPrice = estimateCurrentPrice(fromJSON)
+  fromJSON.currentPrice = estimateCurrentPrice(fromJSON);
 
-  return fromJSON
-}
+  return fromJSON;
+};
 
 /**
  * Convert an order to JSON, hashing it as well if necessary
@@ -500,9 +501,9 @@ export const orderToJSON = (order: Order): OrderJSON => {
     s: order.s,
 
     hash: order.hash,
-  }
-  return asJSON
-}
+  };
+  return asJSON;
+};
 
 /**
  * Sign messages using web3 personal signatures
@@ -516,7 +517,7 @@ export async function personalSignAsync(
   message: string,
   signerAddress: string
 ): Promise<ECSignature> {
-  const signature = await promisify<Web3.JSONRPCResponsePayload>(c =>
+  const signature = await promisify<Web3.JSONRPCResponsePayload>((c) =>
     web3.currentProvider.sendAsync(
       {
         method: "personal_sign",
@@ -526,17 +527,17 @@ export async function personalSignAsync(
       } as any,
       c
     )
-  )
+  );
 
-  const error = (signature as any).error
+  const error = (signature as any).error;
   if (error) {
-    throw new Error(error)
+    throw new Error(error);
   }
 
   //
   return {
     ...parseSignatureHex(signature.result),
-  }
+  };
 }
 
 /**
@@ -548,8 +549,8 @@ export async function isContractAddress(
   web3: Web3,
   address: string
 ): Promise<boolean> {
-  const code = await promisify<string>(c => web3.eth.getCode(address, c))
-  return code !== "0x"
+  const code = await promisify<string>((c) => web3.eth.getCode(address, c));
+  return code !== "0x";
 }
 
 /**
@@ -559,11 +560,11 @@ export async function isContractAddress(
 export function makeBigNumber(arg: number | string | BigNumber): BigNumber {
   // Zero sometimes returned as 0x from contracts
   if (arg === "0x") {
-    arg = 0
+    arg = 0;
   }
   // fix "new BigNumber() number type has more than 15 significant digits"
-  arg = arg.toString()
-  return new BigNumber(arg)
+  arg = arg.toString();
+  return new BigNumber(arg);
 }
 
 /**
@@ -584,11 +585,11 @@ export async function sendRawTransaction(
 ): Promise<string> {
   if (gas == null) {
     // This gas cannot be increased due to an ethjs error
-    gas = await estimateGas(web3, { from, to, data, value })
+    gas = await estimateGas(web3, { from, to, data, value });
   }
 
   try {
-    const txHashRes = await promisify<string>(c =>
+    const txHashRes = await promisify<string>((c) =>
       web3.eth.sendTransaction(
         {
           from,
@@ -600,11 +601,11 @@ export async function sendRawTransaction(
         },
         c
       )
-    )
-    return txHashRes.toString()
+    );
+    return txHashRes.toString();
   } catch (error) {
-    onError(error)
-    throw error
+    onError(error);
+    throw error;
   }
 }
 
@@ -624,7 +625,7 @@ export async function rawCall(
   onError?: (error: Error) => void
 ): Promise<string> {
   try {
-    const result = await promisify<string>(c =>
+    const result = await promisify<string>((c) =>
       web3.eth.call(
         {
           from,
@@ -633,15 +634,15 @@ export async function rawCall(
         },
         c
       )
-    )
-    return result
+    );
+    return result;
   } catch (error) {
     // Probably method not found, and web3 is a Parity node
     if (onError) {
-      onError(error)
+      onError(error);
     }
     // Backwards compatibility with Geth nodes
-    return "0x"
+    return "0x";
   }
 }
 
@@ -657,7 +658,7 @@ export async function estimateGas(
   web3: Web3,
   { from, to, data, value = 0 }: Web3.TxData
 ): Promise<number> {
-  const amount = await promisify<number>(c =>
+  const amount = await promisify<number>((c) =>
     web3.eth.estimateGas(
       {
         from,
@@ -667,9 +668,9 @@ export async function estimateGas(
       },
       c
     )
-  )
+  );
 
-  return amount
+  return amount;
 }
 
 /**
@@ -677,8 +678,8 @@ export async function estimateGas(
  * @param web3 Web3 instance
  */
 export async function getCurrentGasPrice(web3: Web3): Promise<BigNumber> {
-  const meanGas = await promisify<BigNumber>(c => web3.eth.getGasPrice(c))
-  return meanGas
+  const meanGas = await promisify<BigNumber>((c) => web3.eth.getGasPrice(c));
+  return meanGas;
 }
 
 /**
@@ -696,26 +697,26 @@ export async function getTransferFeeSettings(
     accountAddress?: string;
   }
 ) {
-  let transferFee: BigNumber | undefined
-  let transferFeeTokenAddress: string | undefined
+  let transferFee: BigNumber | undefined;
+  let transferFeeTokenAddress: string | undefined;
 
   if (asset.tokenAddress.toLowerCase() == ENJIN_ADDRESS.toLowerCase()) {
     // Enjin asset
     const feeContract = web3.eth
       .contract(ERC1155 as any)
-      .at(asset.tokenAddress)
+      .at(asset.tokenAddress);
 
-    const params = await promisifyCall<any[]>(c =>
+    const params = await promisifyCall<any[]>((c) =>
       feeContract.transferSettings(asset.tokenId, { from: accountAddress }, c)
-    )
+    );
     if (params) {
-      transferFee = makeBigNumber(params[3])
+      transferFee = makeBigNumber(params[3]);
       if (params[2] == 0) {
-        transferFeeTokenAddress = ENJIN_COIN_ADDRESS
+        transferFeeTokenAddress = ENJIN_COIN_ADDRESS;
       }
     }
   }
-  return { transferFee, transferFeeTokenAddress }
+  return { transferFee, transferFeeTokenAddress };
 }
 
 // sourced from 0x.js:
@@ -725,45 +726,45 @@ function parseSignatureHex(signature: string): ECSignature {
   // v + r + s OR r + s + v, and different clients (even different versions of the same client)
   // return the signature params in different orders. In order to support all client implementations,
   // we parse the signature in both ways, and evaluate if either one is a valid signature.
-  const validVParamValues = [27, 28]
+  const validVParamValues = [27, 28];
 
-  const ecSignatureRSV = _parseSignatureHexAsRSV(signature)
+  const ecSignatureRSV = _parseSignatureHexAsRSV(signature);
   if (_.includes(validVParamValues, ecSignatureRSV.v)) {
-    return ecSignatureRSV
+    return ecSignatureRSV;
   }
 
   // For older clients
-  const ecSignatureVRS = _parseSignatureHexAsVRS(signature)
+  const ecSignatureVRS = _parseSignatureHexAsVRS(signature);
   if (_.includes(validVParamValues, ecSignatureVRS.v)) {
-    return ecSignatureVRS
+    return ecSignatureVRS;
   }
 
-  throw new Error("Invalid signature")
+  throw new Error("Invalid signature");
 
   function _parseSignatureHexAsVRS(signatureHex: string) {
-    const signatureBuffer: any = ethUtil.toBuffer(signatureHex)
-    let v = signatureBuffer[0]
+    const signatureBuffer: any = ethUtil.toBuffer(signatureHex);
+    let v = signatureBuffer[0];
     if (v < 27) {
-      v += 27
+      v += 27;
     }
-    const r = signatureBuffer.slice(1, 33)
-    const s = signatureBuffer.slice(33, 65)
+    const r = signatureBuffer.slice(1, 33);
+    const s = signatureBuffer.slice(33, 65);
     const ecSignature = {
       v,
       r: ethUtil.bufferToHex(r),
       s: ethUtil.bufferToHex(s),
-    }
-    return ecSignature
+    };
+    return ecSignature;
   }
 
   function _parseSignatureHexAsRSV(signatureHex: string) {
-    const { v, r, s } = ethUtil.fromRpcSig(signatureHex)
+    const { v, r, s } = ethUtil.fromRpcSig(signatureHex);
     const ecSignature = {
       v,
       r: ethUtil.bufferToHex(r),
       s: ethUtil.bufferToHex(s),
-    }
-    return ecSignature
+    };
+    return ecSignature;
   }
 }
 
@@ -779,41 +780,41 @@ export function estimateCurrentPrice(
   secondsToBacktrack = 30,
   shouldRoundUp = true
 ) {
-  let { basePrice, listingTime, expirationTime, extra } = order
-  const { side, takerRelayerFee, saleKind } = order
+  let { basePrice, listingTime, expirationTime, extra } = order;
+  const { side, takerRelayerFee, saleKind } = order;
 
   const now = new BigNumber(Math.round(Date.now() / 1000)).minus(
     secondsToBacktrack
-  )
-  basePrice = new BigNumber(basePrice)
-  listingTime = new BigNumber(listingTime)
-  expirationTime = new BigNumber(expirationTime)
-  extra = new BigNumber(extra)
+  );
+  basePrice = new BigNumber(basePrice);
+  listingTime = new BigNumber(listingTime);
+  expirationTime = new BigNumber(expirationTime);
+  extra = new BigNumber(extra);
 
-  let exactPrice = basePrice
+  let exactPrice = basePrice;
 
   if (saleKind === SaleKind.FixedPrice) {
     // Do nothing, price is correct
   } else if (saleKind === SaleKind.DutchAuction) {
     const diff = extra
       .times(now.minus(listingTime))
-      .dividedBy(expirationTime.minus(listingTime))
+      .dividedBy(expirationTime.minus(listingTime));
 
     exactPrice =
       side == OrderSide.Sell
         ? /* Sell-side - start price: basePrice. End price: basePrice - extra. */
           basePrice.minus(diff)
         : /* Buy-side - start price: basePrice. End price: basePrice + extra. */
-          basePrice.plus(diff)
+          basePrice.plus(diff);
   }
 
   // Add taker fee only for buyers
   if (side === OrderSide.Sell && !order.waitingForBestCounterOrder) {
     // Buyer fee increases sale price
-    exactPrice = exactPrice.times(+takerRelayerFee / INVERSE_BASIS_POINT + 1)
+    exactPrice = exactPrice.times(+takerRelayerFee / INVERSE_BASIS_POINT + 1);
   }
 
-  return shouldRoundUp ? exactPrice.ceil() : exactPrice
+  return shouldRoundUp ? exactPrice.ceil() : exactPrice;
 }
 
 /**
@@ -827,14 +828,14 @@ export function getWyvernAsset(
   asset: Asset,
   quantity = new BigNumber(1)
 ): WyvernAsset {
-  const tokenId = asset.tokenId != null ? asset.tokenId.toString() : undefined
+  const tokenId = asset.tokenId != null ? asset.tokenId.toString() : undefined;
 
   return schema.assetFromFields({
     ID: tokenId,
     Quantity: quantity.toString(),
     Address: asset.tokenAddress.toLowerCase(),
     Name: asset.name,
-  })
+  });
 }
 
 /**
@@ -850,43 +851,44 @@ export function getWyvernBundle(
   quantities: BigNumber[]
 ): WyvernBundle {
   if (assets.length != quantities.length) {
-    throw new Error("Bundle must have a quantity for every asset")
+    throw new Error("Bundle must have a quantity for every asset");
   }
 
   if (assets.length != schemas.length) {
-    throw new Error("Bundle must have a schema for every asset")
+    throw new Error("Bundle must have a schema for every asset");
   }
 
   const wyAssets = assets.map((asset, i) =>
     getWyvernAsset(schemas[i], asset, quantities[i])
-  )
+  );
 
   const sorters = [
     (assetAndSchema: { asset: WyvernAsset; schema: WyvernSchemaName }) =>
       assetAndSchema.asset.address,
     (assetAndSchema: { asset: WyvernAsset; schema: WyvernSchemaName }) =>
       assetAndSchema.asset.id || 0,
-  ]
+  ];
 
   const wyAssetsAndSchemas = wyAssets.map((asset, i) => ({
     asset,
     schema: schemas[i].name as WyvernSchemaName,
-  }))
+  }));
 
   const uniqueAssets = _.uniqBy(
-    wyAssetsAndSchemas,group => `${sorters[0](group)}-${sorters[1](group)}`
-  )
+    wyAssetsAndSchemas,
+    (group) => `${sorters[0](group)}-${sorters[1](group)}`
+  );
 
   if (uniqueAssets.length != wyAssetsAndSchemas.length) {
-    throw new Error("Bundle can't contain duplicate assets")
+    throw new Error("Bundle can't contain duplicate assets");
   }
 
-  const sortedWyAssetsAndSchemas = _.sortBy(wyAssetsAndSchemas, sorters)
+  const sortedWyAssetsAndSchemas = _.sortBy(wyAssetsAndSchemas, sorters);
 
   return {
-    assets: sortedWyAssetsAndSchemas.map(group => group.asset),
-    schemas: sortedWyAssetsAndSchemas.map(group => group.schema),
-  }
+    assets: sortedWyAssetsAndSchemas.map((group) => group.asset),
+    schemas: sortedWyAssetsAndSchemas.map((group) => group.schema),
+  };
 }
 
 /**
@@ -904,9 +906,9 @@ export function getOrderHash(order: UnhashedOrder) {
     saleKind: order.saleKind.toString(),
     howToCall: order.howToCall.toString(),
     feeMethod: order.feeMethod.toString(),
-  }
+  };
   // console.log("orderWithStringTypes", orderWithStringTypes);
-  return WyvernProtocol.getOrderHashHex(orderWithStringTypes as any)
+  return WyvernProtocol.getOrderHashHex(orderWithStringTypes as any);
 }
 
 /**
@@ -918,29 +920,29 @@ export function assignOrdersToSides(
   order: Order,
   matchingOrder: UnsignedOrder
 ): { buy: Order; sell: Order } {
-  const isSellOrder = order.side == OrderSide.Sell
+  const isSellOrder = order.side == OrderSide.Sell;
 
-  let buy: Order
-  let sell: Order
+  let buy: Order;
+  let sell: Order;
   if (!isSellOrder) {
-    buy = order
+    buy = order;
     sell = {
       ...matchingOrder,
       v: buy.v,
       r: buy.r,
       s: buy.s,
-    }
+    };
   } else {
-    sell = order
+    sell = order;
     buy = {
       ...matchingOrder,
       v: sell.v,
       r: sell.r,
       s: sell.s,
-    }
+    };
   }
 
-  return { buy, sell }
+  return { buy, sell };
 }
 
 // BROKEN
@@ -955,17 +957,17 @@ async function canSettleOrder(
   const calldata =
     order.calldata.slice(0, 98) +
     "1111111111111111111111111111111111111111" +
-    order.calldata.slice(138)
+    order.calldata.slice(138);
 
   const seller =
-    order.side == OrderSide.Buy ? matchingOrder.maker : order.maker
-  const proxy = await client._getProxy(seller)
+    order.side == OrderSide.Buy ? matchingOrder.maker : order.maker;
+  const proxy = await client._getProxy(seller);
   if (!proxy) {
-    console.warn(`No proxy found for seller ${seller}`)
-    return false
+    console.warn(`No proxy found for seller ${seller}`);
+    return false;
   }
-  const contract = client.web3.eth.contract([proxyABI]).at(proxy)
-  return promisify<boolean>(c =>
+  const contract = client.web3.eth.contract([proxyABI]).at(proxy);
+  return promisify<boolean>((c) =>
     contract.proxy.call(
       order.target,
       order.howToCall,
@@ -973,7 +975,7 @@ async function canSettleOrder(
       { from: seller },
       c
     )
-  )
+  );
 }
 
 /**
@@ -981,7 +983,7 @@ async function canSettleOrder(
  * @param ms milliseconds to wait
  */
 export async function delay(ms: number) {
-  return new Promise(res => setTimeout(res, ms))
+  return new Promise((res) => setTimeout(res, ms));
 }
 
 /**
@@ -994,15 +996,15 @@ export function validateAndFormatWalletAddress(
   address: string
 ): string {
   if (!address) {
-    throw new Error("No wallet address found")
+    throw new Error("No wallet address found");
   }
   if (!web3.isAddress(address)) {
-    throw new Error("Invalid wallet address")
+    throw new Error("Invalid wallet address");
   }
   if (address == NULL_ADDRESS) {
-    throw new Error("Wallet cannot be the null address")
+    throw new Error("Wallet cannot be the null address");
   }
-  return address.toLowerCase()
+  return address.toLowerCase();
 }
 
 /**
@@ -1010,7 +1012,7 @@ export function validateAndFormatWalletAddress(
  * @param msg message to log to console
  */
 export function onDeprecated(msg: string) {
-  console.warn(`DEPRECATION NOTICE: ${msg}`)
+  console.warn(`DEPRECATION NOTICE: ${msg}`);
 }
 
 /**
@@ -1024,25 +1026,407 @@ export async function getNonCompliantApprovalAddress(
 ): Promise<string | undefined> {
   const results = await Promise.all([
     // CRYPTOKITTIES check
-    promisifyCall<string>(c =>
+    promisifyCall<string>((c) =>
       erc721Contract.kittyIndexToApproved.call(tokenId, c)
     ),
     // Etherbots check
-    promisifyCall<string>(c =>
+    promisifyCall<string>((c) =>
       erc721Contract.partIndexToApproved.call(tokenId, c)
     ),
-  ])
+  ]);
 
-  return _.compact(results)[0]
+  return _.compact(results)[0];
 }
 
 export function createFakeAsset({
   tokenId,
   tokenAddress,
+  schemaName = "ERC1155",
 }: {
   tokenId: string;
   tokenAddress: string;
+  schemaName: string;
 }) {
+  if (schemaName === "ERC721") {
+    return {
+      id: tokenId,
+      token_id: tokenId,
+      num_sales: 0,
+      background_color: null,
+      image_url:
+        "https://storage.googleapis.com/ck-kitty-image/0x06012c8cf97bead5deae237070f9587f8e7a266d/0.svg",
+      image_preview_url:
+        "https://storage.googleapis.com/ck-kitty-image/0x06012c8cf97bead5deae237070f9587f8e7a266d/0.svg",
+      image_thumbnail_url: null,
+      image_original_url: null,
+      animation_url: null,
+      animation_original_url: null,
+      name: "Manga NFT 721",
+      description: null,
+      external_link: "https://www.cryptokitties.co/kitty/0",
+      asset_contract: {
+        address: tokenAddress,
+        asset_contract_type: "non-fungible",
+        created_date: "2018-01-23T04:51:38.832339",
+        name: "CryptoKitties",
+        nft_version: "1.0",
+        opensea_version: null,
+        owner: 463841,
+        schema_name: "ERC721",
+        symbol: "CKITTY",
+        total_supply: null,
+        description:
+          "CryptoKitties is a game centered around breedable, collectible, and oh-so-adorable creatures we call CryptoKitties! Each cat is one-of-a-kind and 100% owned by you; it cannot be replicated, taken away, or destroyed.",
+        external_link: "https://www.cryptokitties.co/",
+        image_url:
+          "https://lh3.googleusercontent.com/C272ZRW1RGGef9vKMePFSCeKc1Lw6U40wl9ofNVxzUxFdj84hH9xJRQNf-7wgs7W8qw8RWe-1ybKp-VKuU5D-tg=s60",
+        default_to_fiat: false,
+        dev_buyer_fee_basis_points: 0,
+        dev_seller_fee_basis_points: 0,
+        only_proxied_transfers: false,
+        opensea_buyer_fee_basis_points: 0,
+        opensea_seller_fee_basis_points: 250,
+        buyer_fee_basis_points: 0,
+        seller_fee_basis_points: 250,
+        payout_address: null,
+      },
+      permalink:
+        "https://opensea.io/assets/0x06012c8cf97bead5deae237070f9587f8e7a266d/0",
+      collection: {
+        payment_tokens: [
+          {
+            id: 5098533,
+            symbol: "RFR",
+            address: "0xd0929d411954c47438dc1d871dd6081f5c5e149c",
+            image_url:
+              "https://lh3.googleusercontent.com/XB1KohVuy2E87R324IGijVhDZeHKhlkiB_TcpAH8sVTCdaA5brsYyxYXNzFK6SE2qGAtfya7FVzB9rgJBYQrjJVqeA",
+            name: null,
+            decimals: 4,
+            eth_price: 1.078455134e-5,
+            usd_price: 0.02168627,
+          },
+          {
+            id: 13689077,
+            symbol: "ETH",
+            address: "0x0000000000000000000000000000000000000000",
+            image_url:
+              "https://storage.opensea.io/files/6f8e2979d428180222796ff4a33ab929.svg",
+            name: "Ether",
+            decimals: 18,
+            eth_price: 1.0,
+            usd_price: 4308.2,
+          },
+          {
+            id: 4645815,
+            symbol: "GUSD",
+            address: "0x056fd409e1d7a124bd7017459dfea2f387b6d5cd",
+            image_url:
+              "https://lh3.googleusercontent.com/MLKbcx1oxhZjkXzsQM-fju8R3hHqsu-mGpFzivWMadH7bXT_kw48-rrD6os594lPY0x7MU-QGLy4ZudX1ePTx-Y",
+            name: "Gemini dollar",
+            decimals: 2,
+            eth_price: 0.00056390042182,
+            usd_price: 1.0,
+          },
+          {
+            id: 12182941,
+            symbol: "DAI",
+            address: "0x6b175474e89094c44da98b954eedeac495271d0f",
+            image_url:
+              "https://storage.opensea.io/files/8ef8fb3fe707f693e57cdbfea130c24c.svg",
+            name: "Dai Stablecoin",
+            decimals: 18,
+            eth_price: 0.00023278,
+            usd_price: 1.0,
+          },
+          {
+            id: 4645681,
+            symbol: "WETH",
+            address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+            image_url:
+              "https://storage.opensea.io/files/accae6b6fb3888cbff27a013729c22dc.svg",
+            name: "Wrapped Ether",
+            decimals: 18,
+            eth_price: 1.0,
+            usd_price: 4308.2,
+          },
+          {
+            id: 4403908,
+            symbol: "USDC",
+            address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            image_url:
+              "https://storage.opensea.io/files/749015f009a66abcb3bbb3502ae2f1ce.svg",
+            name: "USD Coin",
+            decimals: 6,
+            eth_price: 0.00023293,
+            usd_price: 1.0,
+          },
+          {
+            id: 4645691,
+            symbol: "WCK",
+            address: "0x09fe5f0236f0ea5d930197dce254d77b04128075",
+            image_url:
+              "https://lh3.googleusercontent.com/L5nvau4G9vXrA4AUs8OLxddBBEQHQZgUuUqnv9PzGo5mMgDm3_7pKhy8HPeWnqYCqKBi3MkhY6vpzq0HnV4aAEY",
+            name: "Wrapped CryptoKitties",
+            decimals: 18,
+            eth_price: 0.003858847984609,
+            usd_price: 7.84,
+          },
+          {
+            id: 16206959,
+            symbol: "CHERRY",
+            address: "0x0eed7d6564fae0c22a7dc9ebb3db4a4c4a1473ee",
+            image_url:
+              "https://lh3.googleusercontent.com/DRoQ7e9zCHgk8CLcTpKxYTIIFyG8qzlsW3wPFY_NiVVdScylei8jbXHua49Bp--j7tNIvTYxftIwpEuatgUxsN8AeA",
+            name: "Cherry",
+            decimals: 18,
+            eth_price: 3.39e-6,
+            usd_price: 0.01465228,
+          },
+        ],
+        primary_asset_contracts: [
+          {
+            address: "0x06012c8cf97bead5deae237070f9587f8e7a266d",
+            asset_contract_type: "non-fungible",
+            created_date: "2018-01-23T04:51:38.832339",
+            name: "CryptoKitties",
+            nft_version: "1.0",
+            opensea_version: null,
+            owner: 463841,
+            schema_name: "ERC721",
+            symbol: "CKITTY",
+            total_supply: null,
+            description:
+              "CryptoKitties is a game centered around breedable, collectible, and oh-so-adorable creatures we call CryptoKitties! Each cat is one-of-a-kind and 100% owned by you; it cannot be replicated, taken away, or destroyed.",
+            external_link: "https://www.cryptokitties.co/",
+            image_url:
+              "https://lh3.googleusercontent.com/C272ZRW1RGGef9vKMePFSCeKc1Lw6U40wl9ofNVxzUxFdj84hH9xJRQNf-7wgs7W8qw8RWe-1ybKp-VKuU5D-tg=s60",
+            default_to_fiat: false,
+            dev_buyer_fee_basis_points: 0,
+            dev_seller_fee_basis_points: 0,
+            only_proxied_transfers: false,
+            opensea_buyer_fee_basis_points: 0,
+            opensea_seller_fee_basis_points: 250,
+            buyer_fee_basis_points: 0,
+            seller_fee_basis_points: 250,
+            payout_address: null,
+          },
+        ],
+        traits: {
+          generation: {
+            min: 0,
+            max: 4593,
+          },
+          fancy_ranking: {
+            min: 1,
+            max: 10000,
+          },
+          cooldown_index: {
+            min: 0,
+            max: 13,
+          },
+          purrstige_ranking: {
+            min: 1,
+            max: 2480,
+          },
+        },
+        stats: {
+          one_day_volume: 9.52608424875555,
+          one_day_change: 2.5790294450125315,
+          one_day_sales: 71.0,
+          one_day_average_price: 0.13417020068669788,
+          seven_day_volume: 19.5147201372279,
+          seven_day_change: 0.8478926971835331,
+          seven_day_sales: 415.0,
+          seven_day_average_price: 0.047023422017416626,
+          thirty_day_volume: 87.4913976572758,
+          thirty_day_change: -0.7241122203666088,
+          thirty_day_sales: 1782.0,
+          thirty_day_average_price: 0.04909730508264635,
+          total_volume: 69822.5459540869,
+          total_sales: 771402.0,
+          total_supply: 2009506.0,
+          count: 2009506.0,
+          num_owners: 109740,
+          average_price: 0.09051382541669183,
+          num_reports: 30,
+          market_cap: 94493.84868453082,
+          floor_price: 0,
+        },
+        banner_image_url:
+          "https://storage.opensea.io/static/banners/cryptokitties-banner2.png",
+        chat_url: null,
+        created_date: "2019-04-26T22:13:04.207050",
+        default_to_fiat: false,
+        description:
+          "CryptoKitties is a game centered around breedable, collectible, and oh-so-adorable creatures we call CryptoKitties! Each cat is one-of-a-kind and 100% owned by you; it cannot be replicated, taken away, or destroyed.",
+        dev_buyer_fee_basis_points: "0",
+        dev_seller_fee_basis_points: "0",
+        discord_url: "https://discord.gg/cryptokitties",
+        display_data: {
+          card_display_style: "padded",
+        },
+        external_url: "https://www.cryptokitties.co/",
+        featured: false,
+        featured_image_url:
+          "https://storage.opensea.io/0x06012c8cf97bead5deae237070f9587f8e7a266d-featured-1556589429.png",
+        hidden: false,
+        safelist_request_status: "verified",
+        image_url:
+          "https://lh3.googleusercontent.com/C272ZRW1RGGef9vKMePFSCeKc1Lw6U40wl9ofNVxzUxFdj84hH9xJRQNf-7wgs7W8qw8RWe-1ybKp-VKuU5D-tg=s60",
+        is_subject_to_whitelist: false,
+        large_image_url:
+          "https://lh3.googleusercontent.com/C272ZRW1RGGef9vKMePFSCeKc1Lw6U40wl9ofNVxzUxFdj84hH9xJRQNf-7wgs7W8qw8RWe-1ybKp-VKuU5D-tg",
+        medium_username: null,
+        name: "CryptoKitties",
+        only_proxied_transfers: false,
+        opensea_buyer_fee_basis_points: "0",
+        opensea_seller_fee_basis_points: "250",
+        payout_address: null,
+        require_email: false,
+        short_description: null,
+        slug: "cryptokitties",
+        telegram_url: null,
+        twitter_username: "CryptoKitties",
+        instagram_username: null,
+        wiki_url: "https://opensea.readme.io/page/cryptokitties",
+      },
+      decimals: null,
+      token_metadata: "",
+      owner: {
+        user: {
+          username: "NullAddress",
+        },
+        profile_img_url:
+          "https://storage.googleapis.com/opensea-static/opensea-profile/1.png",
+        address: "0x0000000000000000000000000000000000000000",
+        config: "",
+      },
+      sell_orders: null,
+      creator: {
+        user: null,
+        profile_img_url:
+          "https://storage.googleapis.com/opensea-static/opensea-profile/3.png",
+        address: "0xba52c75764d6f594735dc735be7f1830cdf58ddf",
+        config: "",
+      },
+      traits: [],
+      last_sale: null,
+      top_bid: null,
+      listing_date: null,
+      is_presale: false,
+      transfer_fee_payment_token: null,
+      transfer_fee: null,
+      related_assets: [],
+      orders: [
+        {
+          created_date: "2019-05-20T21:58:57.083557",
+          closing_date: null,
+          closing_extendable: false,
+          expiration_time: 0,
+          listing_time: 1558389413,
+          order_hash:
+            "0x98ef717da657603cd90733a3e1036622c823e6bd82842d8245fbf6582cf19df2",
+          metadata: {
+            asset: {
+              id: "0",
+              address: "0x06012c8cf97bead5deae237070f9587f8e7a266d",
+            },
+            schema: "ERC721",
+          },
+          exchange: "0x7be8076f4ea4a4ad08075c2508e481d6c946d12b",
+          maker: {
+            user: {
+              username: "Kohya",
+            },
+            profile_img_url:
+              "https://storage.googleapis.com/opensea-static/opensea-profile/33.png",
+            address: "0x4884b3a2c3d7fad7627fad543abf0c9e2148edf9",
+            config: "affiliate",
+          },
+          taker: {
+            user: {
+              username: "NullAddress",
+            },
+            profile_img_url:
+              "https://storage.googleapis.com/opensea-static/opensea-profile/1.png",
+            address: "0x0000000000000000000000000000000000000000",
+            config: "",
+          },
+          current_price: "100000000000000",
+          current_bounty: "1000000000000",
+          bounty_multiple: "0.01",
+          maker_relayer_fee: "0",
+          taker_relayer_fee: "0",
+          maker_protocol_fee: "0",
+          taker_protocol_fee: "0",
+          maker_referrer_fee: "0",
+          fee_recipient: {
+            user: {
+              username: "OS-Wallet",
+            },
+            profile_img_url:
+              "https://storage.googleapis.com/opensea-static/opensea-profile/28.png",
+            address: "0x5b3256965e7c3cf26e11fcaf296dfc8807c01073",
+            config: "verified",
+          },
+          fee_method: 1,
+          side: 0,
+          sale_kind: 0,
+          target: "0x06012c8cf97bead5deae237070f9587f8e7a266d",
+          how_to_call: 0,
+          calldata:
+            "0x23b872dd00000000000000000000000000000000000000000000000000000000000000000000000000000000000000004884b3a2c3d7fad7627fad543abf0c9e2148edf90000000000000000000000000000000000000000000000000000000000000000",
+          replacement_pattern:
+            "0x00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          static_target: "0x0000000000000000000000000000000000000000",
+          static_extradata: "0x",
+          payment_token: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+          payment_token_contract: {
+            id: 2,
+            symbol: "WETH",
+            address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+            image_url:
+              "https://storage.opensea.io/files/accae6b6fb3888cbff27a013729c22dc.svg",
+            name: "Wrapped Ether",
+            decimals: 18,
+            eth_price: "1.000000000000000",
+            usd_price: "4308.199999999999818000",
+          },
+          base_price: "100000000000000",
+          extra: "0",
+          quantity: "1",
+          salt: "64725274549790374289212800427449654236778665813782580556057505958447422028749",
+          v: 0,
+          r: "",
+          s: "",
+          approved_on_chain: true,
+          cancelled: false,
+          finalized: false,
+          marked_invalid: false,
+          prefixed_hash:
+            "0x1256af3c58e805e2c934c1ddcc61b30384057624ff3ae134a97fa0440e9ab2a8",
+        },
+      ],
+      auctions: [],
+      supports_wyvern: true,
+      top_ownerships: [
+        {
+          owner: {
+            user: {
+              username: "NullAddress",
+            },
+            profile_img_url:
+              "https://storage.googleapis.com/opensea-static/opensea-profile/1.png",
+            address: "0x0000000000000000000000000000000000000000",
+            config: "",
+          },
+          quantity: "1",
+        },
+      ],
+      ownership: null,
+      highest_buyer_commitment: null,
+    };
+  }
   return {
     id: tokenId,
     token_id: tokenId,
@@ -1221,5 +1605,5 @@ export function createFakeAsset({
     ],
     ownership: null,
     highest_buyer_commitment: null,
-  }
+  };
 }

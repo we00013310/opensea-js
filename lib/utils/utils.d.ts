@@ -159,10 +159,291 @@ export declare function onDeprecated(msg: string): void;
  * @param erc721Contract contract to check
  */
 export declare function getNonCompliantApprovalAddress(erc721Contract: Web3.ContractInstance, tokenId: string, accountAddress: string): Promise<string | undefined>;
-export declare function createFakeAsset({ tokenId, tokenAddress, }: {
+export declare function createFakeAsset({ tokenId, tokenAddress, schemaName, }: {
     tokenId: string;
     tokenAddress: string;
+    schemaName: string;
 }): {
+    id: string;
+    token_id: string;
+    num_sales: number;
+    background_color: null;
+    image_url: string;
+    image_preview_url: string;
+    image_thumbnail_url: null;
+    image_original_url: null;
+    animation_url: null;
+    animation_original_url: null;
+    name: string;
+    description: null;
+    external_link: string;
+    asset_contract: {
+        address: string;
+        asset_contract_type: string;
+        created_date: string;
+        name: string;
+        nft_version: string;
+        opensea_version: null;
+        owner: number;
+        schema_name: string;
+        symbol: string;
+        total_supply: null;
+        description: string;
+        external_link: string;
+        image_url: string;
+        default_to_fiat: boolean;
+        dev_buyer_fee_basis_points: number;
+        dev_seller_fee_basis_points: number;
+        only_proxied_transfers: boolean;
+        opensea_buyer_fee_basis_points: number;
+        opensea_seller_fee_basis_points: number;
+        buyer_fee_basis_points: number;
+        seller_fee_basis_points: number;
+        payout_address: null;
+    };
+    permalink: string;
+    collection: {
+        payment_tokens: ({
+            id: number;
+            symbol: string;
+            address: string;
+            image_url: string;
+            name: null;
+            decimals: number;
+            eth_price: number;
+            usd_price: number;
+        } | {
+            id: number;
+            symbol: string;
+            address: string;
+            image_url: string;
+            name: string;
+            decimals: number;
+            eth_price: number;
+            usd_price: number;
+        })[];
+        primary_asset_contracts: {
+            address: string;
+            asset_contract_type: string;
+            created_date: string;
+            name: string;
+            nft_version: string;
+            opensea_version: null;
+            owner: number;
+            schema_name: string;
+            symbol: string;
+            total_supply: null;
+            description: string;
+            external_link: string;
+            image_url: string;
+            default_to_fiat: boolean;
+            dev_buyer_fee_basis_points: number;
+            dev_seller_fee_basis_points: number;
+            only_proxied_transfers: boolean;
+            opensea_buyer_fee_basis_points: number;
+            opensea_seller_fee_basis_points: number;
+            buyer_fee_basis_points: number;
+            seller_fee_basis_points: number;
+            payout_address: null;
+        }[];
+        traits: {
+            generation: {
+                min: number;
+                max: number;
+            };
+            fancy_ranking: {
+                min: number;
+                max: number;
+            };
+            cooldown_index: {
+                min: number;
+                max: number;
+            };
+            purrstige_ranking: {
+                min: number;
+                max: number;
+            };
+        };
+        stats: {
+            one_day_volume: number;
+            one_day_change: number;
+            one_day_sales: number;
+            one_day_average_price: number;
+            seven_day_volume: number;
+            seven_day_change: number;
+            seven_day_sales: number;
+            seven_day_average_price: number;
+            thirty_day_volume: number;
+            thirty_day_change: number;
+            thirty_day_sales: number;
+            thirty_day_average_price: number;
+            total_volume: number;
+            total_sales: number;
+            total_supply: number;
+            count: number;
+            num_owners: number;
+            average_price: number;
+            num_reports: number;
+            market_cap: number;
+            floor_price: number;
+        };
+        banner_image_url: string;
+        chat_url: null;
+        created_date: string;
+        default_to_fiat: boolean;
+        description: string;
+        dev_buyer_fee_basis_points: string;
+        dev_seller_fee_basis_points: string;
+        discord_url: string;
+        display_data: {
+            card_display_style: string;
+            images?: undefined;
+        };
+        external_url: string;
+        featured: boolean;
+        featured_image_url: string;
+        hidden: boolean;
+        safelist_request_status: string;
+        image_url: string;
+        is_subject_to_whitelist: boolean;
+        large_image_url: string;
+        medium_username: null;
+        name: string;
+        only_proxied_transfers: boolean;
+        opensea_buyer_fee_basis_points: string;
+        opensea_seller_fee_basis_points: string;
+        payout_address: null;
+        require_email: boolean;
+        short_description: null;
+        slug: string;
+        telegram_url: null;
+        twitter_username: string;
+        instagram_username: null;
+        wiki_url: string;
+    };
+    decimals: null;
+    token_metadata: string;
+    owner: {
+        user: {
+            username: string;
+        };
+        profile_img_url: string;
+        address: string;
+        config: string;
+        discord_id?: undefined;
+    };
+    sell_orders: null;
+    creator: {
+        user: null;
+        profile_img_url: string;
+        address: string;
+        config: string;
+        discord_id?: undefined;
+    };
+    traits: never[];
+    last_sale: null;
+    top_bid: null;
+    listing_date: null;
+    is_presale: boolean;
+    transfer_fee_payment_token: null;
+    transfer_fee: null;
+    related_assets: never[];
+    orders: {
+        created_date: string;
+        closing_date: null;
+        closing_extendable: boolean;
+        expiration_time: number;
+        listing_time: number;
+        order_hash: string;
+        metadata: {
+            asset: {
+                id: string;
+                address: string;
+            };
+            schema: string;
+        };
+        exchange: string;
+        maker: {
+            user: {
+                username: string;
+            };
+            profile_img_url: string;
+            address: string;
+            config: string;
+        };
+        taker: {
+            user: {
+                username: string;
+            };
+            profile_img_url: string;
+            address: string;
+            config: string;
+        };
+        current_price: string;
+        current_bounty: string;
+        bounty_multiple: string;
+        maker_relayer_fee: string;
+        taker_relayer_fee: string;
+        maker_protocol_fee: string;
+        taker_protocol_fee: string;
+        maker_referrer_fee: string;
+        fee_recipient: {
+            user: {
+                username: string;
+            };
+            profile_img_url: string;
+            address: string;
+            config: string;
+        };
+        fee_method: number;
+        side: number;
+        sale_kind: number;
+        target: string;
+        how_to_call: number;
+        calldata: string;
+        replacement_pattern: string;
+        static_target: string;
+        static_extradata: string;
+        payment_token: string;
+        payment_token_contract: {
+            id: number;
+            symbol: string;
+            address: string;
+            image_url: string;
+            name: string;
+            decimals: number;
+            eth_price: string;
+            usd_price: string;
+        };
+        base_price: string;
+        extra: string;
+        quantity: string;
+        salt: string;
+        v: number;
+        r: string;
+        s: string;
+        approved_on_chain: boolean;
+        cancelled: boolean;
+        finalized: boolean;
+        marked_invalid: boolean;
+        prefixed_hash: string;
+    }[];
+    auctions: never[];
+    supports_wyvern: boolean;
+    top_ownerships: {
+        owner: {
+            user: {
+                username: string;
+            };
+            profile_img_url: string;
+            address: string;
+            config: string;
+        };
+        quantity: string;
+    }[];
+    ownership: null;
+    highest_buyer_commitment: null;
+} | {
     id: string;
     token_id: string;
     num_sales: number;
@@ -222,7 +503,12 @@ export declare function createFakeAsset({ tokenId, tokenAddress, }: {
             usd_price: number;
         })[];
         primary_asset_contracts: never[];
-        traits: {};
+        traits: {
+            generation?: undefined;
+            fancy_ranking?: undefined;
+            cooldown_index?: undefined;
+            purrstige_ranking?: undefined;
+        };
         stats: {
             one_day_volume: number;
             one_day_change: number;
@@ -244,6 +530,7 @@ export declare function createFakeAsset({ tokenId, tokenAddress, }: {
             average_price: number;
             num_reports: number;
             market_cap: number;
+            floor_price?: undefined;
         };
         banner_image_url: null;
         chat_url: null;
