@@ -5914,7 +5914,7 @@ wrappy@1:
 
 "wyvern-js@git+https://github.com/we00013310/wyvern-js.git":
   version "3.2.0"
-  resolved "git+https://github.com/we00013310/wyvern-js.git#19eeb85e585164ba303b3255ba18bce0ef8d90ac"
+  resolved "git+https://github.com/we00013310/wyvern-js.git#156a4a3bec46adfe9832e64e22c55c2fa04278d4"
   dependencies:
     "0x.js" "^0.29.2"
     "@0xproject/abi-gen" "^0.1.1"
