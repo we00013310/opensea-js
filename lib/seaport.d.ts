@@ -275,6 +275,42 @@ export declare class OpenSeaPort {
         numberOfOrders?: number;
     }): Promise<any[]>;
     /**
+     * Create multiple sell orders in bulk to auction assets out of an asset factory.
+     * Will throw a 'You do not own this asset' error if the maker doesn't own the factory.
+     * Items will mint to users' wallets only when they buy them. See https://docs.opensea.io/docs/opensea-initial-item-sale-tutorial for more info.
+     * If the user hasn't approved access to the token yet, this will emit `ApproveAllAssets` (or `ApproveAsset` if the contract doesn't support approve-all) before asking for approval.
+     * @param param0 __namedParameters Object
+     * @param assets Which assets you want to post orders for. Use the tokenAddress of your factory contract
+     * @param accountAddress Address of the factory owner's wallet
+     * @param startAmount Price of the asset at the start of the auction, or minimum acceptable bid if it's an English auction. Units are in the amount of a token above the token's decimal places (integer part). For example, for ether, expected units are in ETH, not wei.
+     * @param endAmount Optional price of the asset at the end of its expiration time. If not specified, will be set to `startAmount`. Units are in the amount of a token above the token's decimal places (integer part). For example, for ether, expected units are in ETH, not wei.
+     * @param quantity The number of assets to sell at one time (if fungible or semi-fungible). Defaults to 1. In units, not base units, e.g. not wei.
+     * @param listingTime Optional time when the order will become fulfillable, in UTC seconds. Undefined means it will start now.
+     * @param expirationTime Expiration time for the order, in seconds. An expiration time of 0 means "never expire."
+     * @param waitForHighestBid If set to true, this becomes an English auction that increases in price for every bid. The highest bid wins when the auction expires, as long as it's at least `startAmount`. `expirationTime` must be > 0.
+     * @param paymentTokenAddress Address of the ERC-20 token to accept in return. If undefined or null, uses Ether.
+     * @param extraBountyBasisPoints Optional basis points (1/100th of a percent) to reward someone for referring the fulfillment of each order
+     * @param buyerAddress Optional address that's allowed to purchase each item. If specified, no other address will be able to take each order.
+     * @param buyerEmail Optional email of the user that's allowed to purchase each item. If specified, a user will have to verify this email before being able to take each order.
+     * @param numberOfOrders Number of times to repeat creating the same order for each asset. If greater than 5, creates them in batches of 5. Requires an `apiKey` to be set during seaport initialization in order to not be throttled by the API.
+     * @returns The number of orders created in total
+     */
+    createFactorySellOrdersWithoutSign({ assets, accountAddress, startAmount, endAmount, quantity, listingTime, expirationTime, waitForHighestBid, paymentTokenAddress, extraBountyBasisPoints, buyerAddress, buyerEmail, numberOfOrders, }: {
+        assets: Asset[];
+        accountAddress: string;
+        startAmount: number;
+        endAmount?: number;
+        quantity?: number;
+        listingTime?: number;
+        expirationTime?: number;
+        waitForHighestBid?: boolean;
+        paymentTokenAddress?: string;
+        extraBountyBasisPoints?: number;
+        buyerAddress?: string;
+        buyerEmail?: string;
+        numberOfOrders?: number;
+    }): Promise<any[]>;
+    /**
      * Create a sell order to auction a bundle of assets.
      * Will throw a 'You do not own this asset' error if the maker doesn't have one of the assets.
      * If the user hasn't approved access to any of the assets yet, this will emit `ApproveAllAssets` (or `ApproveAsset` if the contract doesn't support approve-all) before asking for approval for each asset.
