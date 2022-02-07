@@ -12,7 +12,7 @@ export const OPENSEA_FEE_RECIPIENT =
 export const DEP_INFURA_KEY = "e8695bce67944848aa95459fac052f8e";
 export const MAINNET_PROVIDER_URL = "https://bsc-dataseed.binance.org/";
 export const TESTNET_PROVIDER_URL =
-  "https://data-seed-prebsc-1-s2.binance.org:8545/";
+  "https://data-seed-prebsc-1-s1.binance.org:8545/";
 export const ROPSTEN_PROVIDER_URL =
   "https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161";
 export const RINKEBY_PROVIDER_URL =
