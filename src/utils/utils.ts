@@ -998,9 +998,9 @@ export function validateAndFormatWalletAddress(
   if (!address) {
     throw new Error("No wallet address found");
   }
-  if (!web3.isAddress(address)) {
-    throw new Error("Invalid wallet address");
-  }
+  // if (!web3.isAddress(address)) {
+  //   throw new Error("Invalid wallet address");
+  // }
   if (address == NULL_ADDRESS) {
     throw new Error("Wallet cannot be the null address");
   }
