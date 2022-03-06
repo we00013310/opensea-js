@@ -41,7 +41,7 @@ export declare const OPENSEA_SELLER_BOUNTY_BASIS_POINTS = 100;
 export declare const DEFAULT_MAX_BOUNTY = 250;
 export declare const MIN_EXPIRATION_SECONDS = 10;
 export declare const ORDER_MATCHING_LATENCY_SECONDS: number;
-export declare const SELL_ORDER_BATCH_SIZE = 3;
+export declare const SELL_ORDER_BATCH_SIZE = 50;
 export declare const ORDERBOOK_VERSION: number;
 export declare const API_VERSION: number;
 export declare const API_BASE_MAINNET = "https://us-central1-trophee-beta.cloudfunctions.net";
