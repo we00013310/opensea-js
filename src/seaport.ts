@@ -130,6 +130,7 @@ import {
   MGT_ADDRESS_TESTNET,
   TESTNET_PROVIDER_URL,
   ROPSTEN_PROVIDER_URL,
+  ETHEREUM_PROVIDER_URL,
 } from "./constants";
 
 export class OpenSeaPort {
@@ -181,6 +182,8 @@ export class OpenSeaPort {
           return TESTNET_PROVIDER_URL;
         case Network.Ropsten:
           return ROPSTEN_PROVIDER_URL;
+        case Network.Ethereum:
+          return ETHEREUM_PROVIDER_URL;
         default:
           return RINKEBY_PROVIDER_URL;
       }

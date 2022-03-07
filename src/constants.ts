@@ -15,6 +15,8 @@ export const TESTNET_PROVIDER_URL =
   "https://data-seed-prebsc-1-s1.binance.org:8545/";
 export const ROPSTEN_PROVIDER_URL =
   "https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161";
+export const ETHEREUM_PROVIDER_URL =
+  "https://rinkeby-api.opensea.io/jsonrpc/v1/";
 export const RINKEBY_PROVIDER_URL =
   "https://rinkeby-api.opensea.io/jsonrpc/v1/";
 export const INVERSE_BASIS_POINT = 10000;
