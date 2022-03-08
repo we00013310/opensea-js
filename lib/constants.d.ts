@@ -9,7 +9,7 @@ export declare const DEP_INFURA_KEY = "e8695bce67944848aa95459fac052f8e";
 export declare const MAINNET_PROVIDER_URL = "https://bsc-dataseed.binance.org/";
 export declare const TESTNET_PROVIDER_URL = "https://data-seed-prebsc-1-s1.binance.org:8545/";
 export declare const ROPSTEN_PROVIDER_URL = "https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161";
-export declare const ETHEREUM_PROVIDER_URL = "https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161";
+export declare const ETHEREUM_PROVIDER_URL = "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161";
 export declare const RINKEBY_PROVIDER_URL = "https://rinkeby-api.opensea.io/jsonrpc/v1/";
 export declare const INVERSE_BASIS_POINT = 10000;
 export declare const MAX_UINT_256: BigNumber;

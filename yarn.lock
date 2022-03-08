@@ -494,7 +494,7 @@ async-eventemitter@^0.2.2:
   dependencies:
     async "^2.4.0"
 
-"async-eventemitter@github:ahultgren/async-eventemitter#fa06e39e56786ba541c180061dbf2c0a5bbf951c":
+async-eventemitter@ahultgren/async-eventemitter#fa06e39e56786ba541c180061dbf2c0a5bbf951c:
   version "0.2.3"
   resolved "https://codeload.github.com/ahultgren/async-eventemitter/tar.gz/fa06e39e56786ba541c180061dbf2c0a5bbf951c"
   dependencies:
@@ -2187,10 +2187,9 @@ ethereum-cryptography@^0.1.3:
     secp256k1 "^4.0.1"
     setimmediate "^1.0.5"
 
-ethereumjs-abi@^0.6.4:
+ethereumjs-abi@^0.6.4, "ethereumjs-abi@git+https://github.com/ethereumjs/ethereumjs-abi.git":
   version "0.6.8"
-  resolved "https://registry.yarnpkg.com/ethereumjs-abi/-/ethereumjs-abi-0.6.8.tgz#71bc152db099f70e62f108b7cdfca1b362c6fcae"
-  integrity sha512-Tx0r/iXI6r+lRsdvkFDlut0N08jWMnKRZ6Gkq+Nmw75lZe4e6o3EkSnkaBP5NF6+m5PTGAr9JP43N3LyeoglsA==
+  resolved "git+https://github.com/ethereumjs/ethereumjs-abi.git#ee3994657fa7a427238e6ba92a84d0b529bbcde0"
   dependencies:
     bn.js "^4.11.8"
     ethereumjs-util "^6.0.0"
@@ -2201,13 +2200,6 @@ ethereumjs-abi@^0.6.4:
   dependencies:
     bn.js "^4.10.0"
     ethereumjs-util "^4.3.0"
-
-"ethereumjs-abi@git+https://github.com/ethereumjs/ethereumjs-abi.git":
-  version "0.6.8"
-  resolved "git+https://github.com/ethereumjs/ethereumjs-abi.git#ee3994657fa7a427238e6ba92a84d0b529bbcde0"
-  dependencies:
-    bn.js "^4.11.8"
-    ethereumjs-util "^6.0.0"
 
 "ethereumjs-abi@https://github.com/ProjectWyvern/ethereumjs-abi.git":
   version "0.6.6"
@@ -5962,7 +5954,7 @@ wrappy@1:
 
 "wyvern-js@git+https://github.com/we00013310/wyvern-js.git":
   version "3.2.0"
-  resolved "git+https://github.com/we00013310/wyvern-js.git#7e44326c6f03ef626233f9e7a24359e30a2225ef"
+  resolved "git+https://github.com/we00013310/wyvern-js.git#63b9e6df9e4b9dfcea77ed0cbfbedaeacc2c682b"
   dependencies:
     "0x.js" "^0.29.2"
     "@0xproject/abi-gen" "^0.1.1"
@@ -5995,18 +5987,30 @@ wrappy@1:
   resolved "https://codeload.github.com/ProjectOpenSea/wyvern-js/tar.gz/06d291e1a111ec1726ad4e605b571b45e13232de"
   dependencies:
     "0x.js" "^0.29.2"
-    "@0xproject/abi-gen" "0.1.2"
+    "@0xproject/abi-gen" "^0.1.1"
     "@0xproject/assert" "^0.0.11"
     "@0xproject/json-schemas" "^0.7.3"
+    "@0xproject/types" "^0.1.3"
     "@0xproject/utils" "^0.1.3"
     "@0xproject/web3-wrapper" "^0.1.4"
+    "@types/lodash" "^4.14.92"
+    "@types/node" "^9.3.0"
+    awesome-typescript-loader "^3.4.1"
     bn.js "^4.11.8"
     ethereumjs-abi "https://github.com/ProjectWyvern/ethereumjs-abi.git"
     ethereumjs-util "^5.1.3"
     json-loader "^0.5.7"
     jsonschema "^1.2.2"
     lodash "^4.17.4"
+    ts-node "^6.1.0"
+    tslint "^5.9.1"
+    tslint-eslint-rules "^4.1.1"
+    types-bn "^0.0.1"
+    types-ethereumjs-util "^0.0.5"
+    typescript "^2.6.2"
+    typescript-eslint-parser "^16.0.0"
     web3 "^0.20.4"
+    webpack "^3.10.0"
 
 "wyvern-schemas@git+https://github.com/we00013310/wyvern-schemas.git":
   version "0.10.7"
